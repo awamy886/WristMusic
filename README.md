@@ -179,14 +179,6 @@ src/WristMusic/
 
 已在网易云 3.1.41.205564 上安装 BetterNCM 1.3.4 x64 与 InfLink-rs 3.4.0，实测取得非零真实进度、总时长和跳转能力；播放时递增、暂停后冻结、跳转目标与恢复原歌曲位置及暂停状态均已验证通过。插件运行于网易云进程，腕间音乐仍通过系统 SMTC 接口控制，后台无需前台窗口。结果摘要见 `artifacts/validation/netease-bridge-results.json`。
 
-开发环境没有可用的 SteamVR 运行时与头显，因此仍需在目标设备检查：
-
-- 网易云 / QQ / 酷狗 / 汽水各自的实际安装版本，逐项验证播放、切歌、封面与拖动进度。
-- SteamVR 中左右手佩戴、扳机点击位置、双击 B 显示 / 隐藏面板、合成光标的可见性与流畅度、抬腕阈值、边界抖动、失去追踪与重新连接。
-- 在安装 SteamVR 的电脑上开启 / 关闭跟随启动，实际重启 SteamVR 验证自动运行、窗口最小化和重复启动保护。
-- VRChat 前台运行时的面板可见性与输入、Win10 / Win11 上的音频设备切换及持续运行开销。
-- 桌面窗口最小化 / 长时间被游戏遮挡后，VR 光标、进度和双击 B 是否持续响应，无需在桌面点击唤醒。
-
 ## 接口依据
 
 - [Microsoft：Windows 系统媒体会话管理](https://learn.microsoft.com/en-us/uwp/api/windows.media.control.globalsystemmediatransportcontrolssessionmanager)
