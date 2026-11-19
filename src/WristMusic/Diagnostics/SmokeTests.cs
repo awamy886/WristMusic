@@ -21,6 +21,18 @@ internal static class SmokeTests
         try
         {
             CheckBrowserExclusion(folder, Check);
+            var updateSettings = JsonSerializer.Deserialize<UserSettings>("{}")!;
+            Check(updateSettings.AutoUpdate && !JsonSerializer.Deserialize<UserSettings>("{\"AutoUpdate\":false}")!.AutoUpdate,
+                "Automatic updates default on for existing settings and preserve explicit opt-out");
+            var current = new Version(3, 0, 0);
+            Check(UpdateService.Newer("v3.0.1", current) && !UpdateService.Newer("v3.0.0", current) &&
+                !UpdateService.Newer("v2.9.9", current) && !UpdateService.Newer("v4.0.0-beta", current),
+                "Only strictly newer stable versions can be applied");
+            var portable = UpdateService.FileName("v3.1.0", false);
+            var setup = UpdateService.FileName("v3.1.0", true);
+            var manifest = new string('a', 64) + "  " + portable + "\n" + new string('b', 64) + "  " + setup;
+            Check(UpdateService.ReadDigest(manifest, setup) == new string('B', 64) &&
+                UpdateService.ReadDigest(manifest, portable) == new string('A', 64), "Select the exact package digest for each distribution");
             CheckPlayerOptions(folder, Check);
             await BackgroundRefreshTests.Run(folder, Check, backgroundSoak);
             await AutoStartTests.Run(folder, Check);

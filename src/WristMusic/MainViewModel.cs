@@ -99,6 +99,51 @@ public sealed class MainViewModel : Observable, IDisposable
         get => Settings.ForceClosePlayer;
         set { if (Settings.ForceClosePlayer != value) { Settings.ForceClosePlayer = value; Changed(); } }
     }
+    internal UpdateService Updates { get; } = new();
+    private CancellationTokenSource? _updateLoop;
+    private bool _updatesStarted;
+    private string _updateStatus = "";
+    public string UpdateStatus { get => _updateStatus; private set => Set(ref _updateStatus, value); }
+    public bool AutoUpdate
+    {
+        get => Settings.AutoUpdate;
+        set
+        {
+            if (Settings.AutoUpdate == value) return;
+            Settings.AutoUpdate = value;
+            Notify(); Save();
+            if (_updatesStarted) RestartUpdates();
+        }
+    }
+    internal void StartUpdates() { _updatesStarted = true; RestartUpdates(); }
+    private void RestartUpdates()
+    {
+        _updateLoop?.Cancel();
+        _updateLoop = null;
+        if (!AutoUpdate) { UpdateStatus = "已关闭"; return; }
+        _updateLoop = new();
+        _ = CheckUpdates(_updateLoop);
+    }
+    private async Task CheckUpdates(CancellationTokenSource loop)
+    {
+        var token = loop.Token;
+        try
+        {
+            while (!token.IsCancellationRequested)
+            {
+                UpdateStatus = "正在检查 GitHub 发行版…";
+                try
+                {
+                    var result = await Task.Run(() => Updates.Check(token), token);
+                    if (!token.IsCancellationRequested) UpdateStatus = result;
+                }
+                catch (Exception) when (!token.IsCancellationRequested) { UpdateStatus = "暂时无法检查或下载更新，稍后自动重试"; }
+                await Task.Delay(TimeSpan.FromHours(6), token);
+            }
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+        finally { if (ReferenceEquals(_updateLoop, loop)) _updateLoop = null; loop.Dispose(); }
+    }
     public bool OpenLastPlayer
     {
         get => Settings.OpenLastPlayer;
@@ -452,5 +497,5 @@ public sealed class MainViewModel : Observable, IDisposable
         foreach (var app in Players.Apps) if (!string.IsNullOrEmpty(app.ExePath)) Settings.AppPaths[app.Id] = app.ExePath;
         try { _store.Save(Settings); _lastListeningSave = Settings.TotalListeningSeconds; } catch (Exception e) { Status = "设置保存失败：" + e.Message; }
     }
-    public void Dispose() { if (_disposed) return; _disposed = true; _poll.Dispose(); _clock.Dispose(); _save.Dispose(); Overlay?.Dispose(); Media.Dispose(); Save(); }
+    public void Dispose() { if (_disposed) return; _disposed = true; _updateLoop?.Cancel(); _poll.Dispose(); _clock.Dispose(); _save.Dispose(); Overlay?.Dispose(); Media.Dispose(); Save(); }
 }

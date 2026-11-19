@@ -78,6 +78,7 @@ public sealed class UserSettings
     public bool FollowSteamVr { get; set; }
     public bool ForceClosePlayer { get; set; }
     public bool OpenLastPlayer { get; set; }
+    public bool AutoUpdate { get; set; } = true;
     public string? LastPlayerId { get; set; }
     public bool LaunchSteamVr { get; set; }
     public bool ExperimentalFeaturesEnabled { get; set; }

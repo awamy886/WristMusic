@@ -1,5 +1,5 @@
 #ifndef AppVersion
-  #define AppVersion "2.0.0"
+  #define AppVersion "3.0.0"
 #endif
 #ifndef PayloadDir
   #define PayloadDir SourcePath + "..\artifacts\WristMusic-win-x64"
@@ -69,6 +69,9 @@ Type: files; Name: "{app}\netease-bridge-validation.json"
 Type: files; Name: "{app}\pico-connect-driver-reference.json"
 Type: files; Name: "{app}\WristMusic.pdb"
 
+[INI]
+Filename: "{app}\WristMusic.install.ini"; Section: "Installation"; Key: "Channel"; String: "setup"; Flags: uninsdeleteentry uninsdeletesectionifempty
+
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExe}"; WorkingDir: "{app}"
 Name: "{group}\卸载{#AppName}"; Filename: "{uninstallexe}"
@@ -81,4 +84,5 @@ Filename: "{app}\{#AppExe}"; Description: "运行{#AppName}"; Flags: nowait post
 Filename: "{app}\{#AppExe}"; Parameters: "--uninstall-cleanup"; Flags: runhidden waituntilterminated skipifdoesntexist; RunOnceId: "RemoveOwnedSteamVrStartup"
 
 [UninstallDelete]
+Type: files; Name: "{app}\WristMusic.install.ini"
 Type: dirifempty; Name: "{app}"

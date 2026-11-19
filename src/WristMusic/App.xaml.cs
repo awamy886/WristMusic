@@ -70,6 +70,7 @@ public partial class App : Application
             MessageBox.Show("程序遇到错误，详情已写入临时目录 WristMusic-error.log。\n" + args.Exception.Message, "腕间音乐", MessageBoxButton.OK, MessageBoxImage.Error);
             args.Handled = true;
         };
+        if (UpdateService.Applying()) { Shutdown(); return; }
         _instance = new SingleInstanceGate();
         if (!_instance.Entered)
         {
@@ -77,6 +78,8 @@ public partial class App : Application
             Shutdown(); return;
         }
         var vm = new MainViewModel();
+        if (vm.AutoUpdate && vm.Updates.StartPending(e.Args.Contains("--steamvr-startup"))) { Shutdown(); return; }
+        vm.StartUpdates();
         var window = new MainWindow(vm); MainWindow = window;
         if (e.Args.Contains("--steamvr-startup")) window.WindowState = WindowState.Minimized;
         window.Show();
