@@ -1,0 +1,19 @@
+{
+  "action_sets": [{ "name": "/actions/wrist", "usage": "single" }],
+  "actions": [
+    { "name": "/actions/wrist/in/open_right", "type": "boolean", "requirement": "optional" },
+    { "name": "/actions/wrist/in/open_left", "type": "boolean", "requirement": "optional" },
+    { "name": "/actions/wrist/in/select_right", "type": "boolean", "requirement": "suggested" },
+    { "name": "/actions/wrist/in/select_left", "type": "boolean", "requirement": "suggested" }
+  ],
+  "default_bindings": [
+    { "controller_type": "oculus_touch", "binding_url": "bindings_oculus_touch.json" },
+    { "controller_type": "pico_controller", "binding_url": "bindings_pico_controller.json" },
+    { "controller_type": "knuckles", "binding_url": "bindings_knuckles.json" },
+    { "controller_type": "vive_controller", "binding_url": "bindings_vive_controller.json" }
+  ],
+  "localization": [
+    { "language_tag": "en_US", "/actions/wrist": "Wrist Music", "/actions/wrist/in/open_right": "Toggle panel (double press B)", "/actions/wrist/in/open_left": "Toggle panel (double press B, Index left)", "/actions/wrist/in/select_right": "Right pointer select", "/actions/wrist/in/select_left": "Left pointer select" },
+    { "language_tag": "zh_CN", "/actions/wrist": "腕间音乐", "/actions/wrist/in/open_right": "双击 B 显示/隐藏面板", "/actions/wrist/in/open_left": "双击 B 显示/隐藏面板（Index 左手）", "/actions/wrist/in/select_right": "右手射线确认", "/actions/wrist/in/select_left": "左手射线确认" }
+  ]
+}

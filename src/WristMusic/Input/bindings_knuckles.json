@@ -1,0 +1,9 @@
+{
+  "controller_type": "knuckles", "name": "Wrist Music", "description": "B double press and trigger selection",
+  "bindings": { "/actions/wrist": { "sources": [
+    { "path": "/user/hand/right/input/b", "mode": "button", "inputs": { "click": { "output": "/actions/wrist/in/open_right" } } },
+    { "path": "/user/hand/left/input/b", "mode": "button", "inputs": { "click": { "output": "/actions/wrist/in/open_left" } } },
+    { "path": "/user/hand/right/input/trigger", "mode": "trigger", "inputs": { "click": { "output": "/actions/wrist/in/select_right" } } },
+    { "path": "/user/hand/left/input/trigger", "mode": "trigger", "inputs": { "click": { "output": "/actions/wrist/in/select_left" } } }
+  ] } }
+}

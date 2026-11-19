@@ -1,0 +1,7 @@
+{
+  "controller_type": "vive_controller", "name": "Wrist Music", "description": "Trigger selection; no B button on Vive wand",
+  "bindings": { "/actions/wrist": { "sources": [
+    { "path": "/user/hand/right/input/trigger", "mode": "trigger", "inputs": { "click": { "output": "/actions/wrist/in/select_right" } } },
+    { "path": "/user/hand/left/input/trigger", "mode": "trigger", "inputs": { "click": { "output": "/actions/wrist/in/select_left" } } }
+  ] } }
+}

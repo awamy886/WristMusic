@@ -1,0 +1,272 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Legacy tokens preserve the original purple interface when dark mode is enabled. -->
+  <Color x:Key="Legacy.101116.Color">#101116</Color>
+  <SolidColorBrush x:Key="Legacy.101116.Brush" Color="{StaticResource Legacy.101116.Color}" />
+  <Color x:Key="Legacy.13141D.Color">#13141D</Color>
+  <SolidColorBrush x:Key="Legacy.13141D.Brush" Color="{StaticResource Legacy.13141D.Color}" />
+  <Color x:Key="Legacy.15151C.Color">#15151C</Color>
+  <SolidColorBrush x:Key="Legacy.15151C.Brush" Color="{StaticResource Legacy.15151C.Color}" />
+  <Color x:Key="Legacy.191A23.Color">#191A23</Color>
+  <SolidColorBrush x:Key="Legacy.191A23.Brush" Color="{StaticResource Legacy.191A23.Color}" />
+  <Color x:Key="Legacy.1C1429.Color">#1C1429</Color>
+  <SolidColorBrush x:Key="Legacy.1C1429.Brush" Color="{StaticResource Legacy.1C1429.Color}" />
+  <Color x:Key="Legacy.1D2029.Color">#1D2029</Color>
+  <SolidColorBrush x:Key="Legacy.1D2029.Brush" Color="{StaticResource Legacy.1D2029.Color}" />
+  <Color x:Key="Legacy.20162E.Color">#20162E</Color>
+  <SolidColorBrush x:Key="Legacy.20162E.Brush" Color="{StaticResource Legacy.20162E.Color}" />
+  <Color x:Key="Legacy.211E2B.Color">#211E2B</Color>
+  <SolidColorBrush x:Key="Legacy.211E2B.Brush" Color="{StaticResource Legacy.211E2B.Color}" />
+  <Color x:Key="Legacy.22202D.Color">#22202D</Color>
+  <SolidColorBrush x:Key="Legacy.22202D.Brush" Color="{StaticResource Legacy.22202D.Color}" />
+  <Color x:Key="Legacy.22232F.Color">#22232F</Color>
+  <SolidColorBrush x:Key="Legacy.22232F.Brush" Color="{StaticResource Legacy.22232F.Color}" />
+  <Color x:Key="Legacy.241E30.Color">#241E30</Color>
+  <SolidColorBrush x:Key="Legacy.241E30.Brush" Color="{StaticResource Legacy.241E30.Color}" />
+  <Color x:Key="Legacy.242330.Color">#242330</Color>
+  <SolidColorBrush x:Key="Legacy.242330.Brush" Color="{StaticResource Legacy.242330.Color}" />
+  <Color x:Key="Legacy.252530.Color">#252530</Color>
+  <SolidColorBrush x:Key="Legacy.252530.Brush" Color="{StaticResource Legacy.252530.Color}" />
+  <Color x:Key="Legacy.262230.Color">#262230</Color>
+  <SolidColorBrush x:Key="Legacy.262230.Brush" Color="{StaticResource Legacy.262230.Color}" />
+  <Color x:Key="Legacy.272732.Color">#272732</Color>
+  <SolidColorBrush x:Key="Legacy.272732.Brush" Color="{StaticResource Legacy.272732.Color}" />
+  <Color x:Key="Legacy.282432.Color">#282432</Color>
+  <SolidColorBrush x:Key="Legacy.282432.Brush" Color="{StaticResource Legacy.282432.Color}" />
+  <Color x:Key="Legacy.292332.Color">#292332</Color>
+  <SolidColorBrush x:Key="Legacy.292332.Brush" Color="{StaticResource Legacy.292332.Color}" />
+  <Color x:Key="Legacy.2B2B37.Color">#2B2B37</Color>
+  <SolidColorBrush x:Key="Legacy.2B2B37.Brush" Color="{StaticResource Legacy.2B2B37.Color}" />
+  <Color x:Key="Legacy.30303D.Color">#30303D</Color>
+  <SolidColorBrush x:Key="Legacy.30303D.Brush" Color="{StaticResource Legacy.30303D.Color}" />
+  <Color x:Key="Legacy.30313E.Color">#30313E</Color>
+  <SolidColorBrush x:Key="Legacy.30313E.Brush" Color="{StaticResource Legacy.30313E.Color}" />
+  <Color x:Key="Legacy.33303D.Color">#33303D</Color>
+  <SolidColorBrush x:Key="Legacy.33303D.Brush" Color="{StaticResource Legacy.33303D.Color}" />
+  <Color x:Key="Legacy.34303F.Color">#34303F</Color>
+  <SolidColorBrush x:Key="Legacy.34303F.Brush" Color="{StaticResource Legacy.34303F.Color}" />
+  <Color x:Key="Legacy.38343F.Color">#38343F</Color>
+  <SolidColorBrush x:Key="Legacy.38343F.Brush" Color="{StaticResource Legacy.38343F.Color}" />
+  <Color x:Key="Legacy.3B3B4C.Color">#3B3B4C</Color>
+  <SolidColorBrush x:Key="Legacy.3B3B4C.Brush" Color="{StaticResource Legacy.3B3B4C.Color}" />
+  <Color x:Key="Legacy.3C2F54.Color">#3C2F54</Color>
+  <SolidColorBrush x:Key="Legacy.3C2F54.Brush" Color="{StaticResource Legacy.3C2F54.Color}" />
+  <Color x:Key="Legacy.3C304F.Color">#3C304F</Color>
+  <SolidColorBrush x:Key="Legacy.3C304F.Brush" Color="{StaticResource Legacy.3C304F.Color}" />
+  <Color x:Key="Legacy.3D3155.Color">#3D3155</Color>
+  <SolidColorBrush x:Key="Legacy.3D3155.Brush" Color="{StaticResource Legacy.3D3155.Color}" />
+  <Color x:Key="Legacy.3D3B4D.Color">#3D3B4D</Color>
+  <SolidColorBrush x:Key="Legacy.3D3B4D.Brush" Color="{StaticResource Legacy.3D3B4D.Color}" />
+  <Color x:Key="Legacy.40364F.Color">#40364F</Color>
+  <SolidColorBrush x:Key="Legacy.40364F.Brush" Color="{StaticResource Legacy.40364F.Color}" />
+  <Color x:Key="Legacy.45345F.Color">#45345F</Color>
+  <SolidColorBrush x:Key="Legacy.45345F.Brush" Color="{StaticResource Legacy.45345F.Color}" />
+  <Color x:Key="Legacy.46CCA1.Color">#46CCA1</Color>
+  <SolidColorBrush x:Key="Legacy.46CCA1.Brush" Color="{StaticResource Legacy.46CCA1.Color}" />
+  <Color x:Key="Legacy.514564.Color">#514564</Color>
+  <SolidColorBrush x:Key="Legacy.514564.Brush" Color="{StaticResource Legacy.514564.Color}" />
+  <Color x:Key="Legacy.554A65.Color">#554A65</Color>
+  <SolidColorBrush x:Key="Legacy.554A65.Brush" Color="{StaticResource Legacy.554A65.Color}" />
+  <Color x:Key="Legacy.564164.Color">#564164</Color>
+  <SolidColorBrush x:Key="Legacy.564164.Brush" Color="{StaticResource Legacy.564164.Color}" />
+  <Color x:Key="Legacy.5B576A.Color">#5B576A</Color>
+  <SolidColorBrush x:Key="Legacy.5B576A.Brush" Color="{StaticResource Legacy.5B576A.Color}" />
+  <Color x:Key="Legacy.5EA8F2.Color">#5EA8F2</Color>
+  <SolidColorBrush x:Key="Legacy.5EA8F2.Brush" Color="{StaticResource Legacy.5EA8F2.Color}" />
+  <Color x:Key="Legacy.686477.Color">#686477</Color>
+  <SolidColorBrush x:Key="Legacy.686477.Brush" Color="{StaticResource Legacy.686477.Color}" />
+  <Color x:Key="Legacy.6D528F.Color">#6D528F</Color>
+  <SolidColorBrush x:Key="Legacy.6D528F.Brush" Color="{StaticResource Legacy.6D528F.Color}" />
+  <Color x:Key="Legacy.6E627D.Color">#6E627D</Color>
+  <SolidColorBrush x:Key="Legacy.6E627D.Brush" Color="{StaticResource Legacy.6E627D.Color}" />
+  <Color x:Key="Legacy.6E697E.Color">#6E697E</Color>
+  <SolidColorBrush x:Key="Legacy.6E697E.Brush" Color="{StaticResource Legacy.6E697E.Color}" />
+  <Color x:Key="Legacy.71697F.Color">#71697F</Color>
+  <SolidColorBrush x:Key="Legacy.71697F.Brush" Color="{StaticResource Legacy.71697F.Color}" />
+  <Color x:Key="Legacy.736D84.Color">#736D84</Color>
+  <SolidColorBrush x:Key="Legacy.736D84.Brush" Color="{StaticResource Legacy.736D84.Color}" />
+  <Color x:Key="Legacy.74648F.Color">#74648F</Color>
+  <SolidColorBrush x:Key="Legacy.74648F.Brush" Color="{StaticResource Legacy.74648F.Color}" />
+  <Color x:Key="Legacy.766B87.Color">#766B87</Color>
+  <SolidColorBrush x:Key="Legacy.766B87.Brush" Color="{StaticResource Legacy.766B87.Color}" />
+  <Color x:Key="Legacy.7D748D.Color">#7D748D</Color>
+  <SolidColorBrush x:Key="Legacy.7D748D.Brush" Color="{StaticResource Legacy.7D748D.Color}" />
+  <Color x:Key="Legacy.7E708E.Color">#7E708E</Color>
+  <SolidColorBrush x:Key="Legacy.7E708E.Brush" Color="{StaticResource Legacy.7E708E.Color}" />
+  <Color x:Key="Legacy.7E728F.Color">#7E728F</Color>
+  <SolidColorBrush x:Key="Legacy.7E728F.Brush" Color="{StaticResource Legacy.7E728F.Color}" />
+  <Color x:Key="Legacy.7F718F.Color">#7F718F</Color>
+  <SolidColorBrush x:Key="Legacy.7F718F.Brush" Color="{StaticResource Legacy.7F718F.Color}" />
+  <Color x:Key="Legacy.80649F.Color">#80649F</Color>
+  <SolidColorBrush x:Key="Legacy.80649F.Brush" Color="{StaticResource Legacy.80649F.Color}" />
+  <Color x:Key="Legacy.83798F.Color">#83798F</Color>
+  <SolidColorBrush x:Key="Legacy.83798F.Brush" Color="{StaticResource Legacy.83798F.Color}" />
+  <Color x:Key="Legacy.858093.Color">#858093</Color>
+  <SolidColorBrush x:Key="Legacy.858093.Brush" Color="{StaticResource Legacy.858093.Color}" />
+  <Color x:Key="Legacy.858095.Color">#858095</Color>
+  <SolidColorBrush x:Key="Legacy.858095.Brush" Color="{StaticResource Legacy.858095.Color}" />
+  <Color x:Key="Legacy.867C96.Color">#867C96</Color>
+  <SolidColorBrush x:Key="Legacy.867C96.Brush" Color="{StaticResource Legacy.867C96.Color}" />
+  <Color x:Key="Legacy.887C9B.Color">#887C9B</Color>
+  <SolidColorBrush x:Key="Legacy.887C9B.Brush" Color="{StaticResource Legacy.887C9B.Color}" />
+  <Color x:Key="Legacy.8E809F.Color">#8E809F</Color>
+  <SolidColorBrush x:Key="Legacy.8E809F.Brush" Color="{StaticResource Legacy.8E809F.Color}" />
+  <Color x:Key="Legacy.8F859F.Color">#8F859F</Color>
+  <SolidColorBrush x:Key="Legacy.8F859F.Brush" Color="{StaticResource Legacy.8F859F.Color}" />
+  <Color x:Key="Legacy.92849F.Color">#92849F</Color>
+  <SolidColorBrush x:Key="Legacy.92849F.Brush" Color="{StaticResource Legacy.92849F.Color}" />
+  <Color x:Key="Legacy.9293A7.Color">#9293A7</Color>
+  <SolidColorBrush x:Key="Legacy.9293A7.Brush" Color="{StaticResource Legacy.9293A7.Color}" />
+  <Color x:Key="Legacy.9485AB.Color">#9485AB</Color>
+  <SolidColorBrush x:Key="Legacy.9485AB.Brush" Color="{StaticResource Legacy.9485AB.Color}" />
+  <Color x:Key="Legacy.968AA8.Color">#968AA8</Color>
+  <SolidColorBrush x:Key="Legacy.968AA8.Brush" Color="{StaticResource Legacy.968AA8.Color}" />
+  <Color x:Key="Legacy.9974DD.Color">#9974DD</Color>
+  <SolidColorBrush x:Key="Legacy.9974DD.Brush" Color="{StaticResource Legacy.9974DD.Color}" />
+  <Color x:Key="Legacy.9B8CAE.Color">#9B8CAE</Color>
+  <SolidColorBrush x:Key="Legacy.9B8CAE.Brush" Color="{StaticResource Legacy.9B8CAE.Color}" />
+  <Color x:Key="Legacy.9B8EAA.Color">#9B8EAA</Color>
+  <SolidColorBrush x:Key="Legacy.9B8EAA.Brush" Color="{StaticResource Legacy.9B8EAA.Color}" />
+  <Color x:Key="Legacy.9E72FF.Color">#9E72FF</Color>
+  <SolidColorBrush x:Key="Legacy.9E72FF.Brush" Color="{StaticResource Legacy.9E72FF.Color}" />
+  <Color x:Key="Legacy.9F80D8.Color">#9F80D8</Color>
+  <SolidColorBrush x:Key="Legacy.9F80D8.Brush" Color="{StaticResource Legacy.9F80D8.Color}" />
+  <Color x:Key="Legacy.A17DE8.Color">#A17DE8</Color>
+  <SolidColorBrush x:Key="Legacy.A17DE8.Brush" Color="{StaticResource Legacy.A17DE8.Color}" />
+  <Color x:Key="Legacy.A49AAF.Color">#A49AAF</Color>
+  <SolidColorBrush x:Key="Legacy.A49AAF.Brush" Color="{StaticResource Legacy.A49AAF.Color}" />
+  <Color x:Key="Legacy.A77EDB.Color">#A77EDB</Color>
+  <SolidColorBrush x:Key="Legacy.A77EDB.Brush" Color="{StaticResource Legacy.A77EDB.Color}" />
+  <Color x:Key="Legacy.A79BB8.Color">#A79BB8</Color>
+  <SolidColorBrush x:Key="Legacy.A79BB8.Brush" Color="{StaticResource Legacy.A79BB8.Color}" />
+  <Color x:Key="Legacy.A8A2B7.Color">#A8A2B7</Color>
+  <SolidColorBrush x:Key="Legacy.A8A2B7.Brush" Color="{StaticResource Legacy.A8A2B7.Color}" />
+  <Color x:Key="Legacy.A9A3B8.Color">#A9A3B8</Color>
+  <SolidColorBrush x:Key="Legacy.A9A3B8.Brush" Color="{StaticResource Legacy.A9A3B8.Color}" />
+  <Color x:Key="Legacy.AA9BBF.Color">#AA9BBF</Color>
+  <SolidColorBrush x:Key="Legacy.AA9BBF.Brush" Color="{StaticResource Legacy.AA9BBF.Color}" />
+  <Color x:Key="Legacy.ACA1BD.Color">#ACA1BD</Color>
+  <SolidColorBrush x:Key="Legacy.ACA1BD.Brush" Color="{StaticResource Legacy.ACA1BD.Color}" />
+  <Color x:Key="Legacy.ACA3BC.Color">#ACA3BC</Color>
+  <SolidColorBrush x:Key="Legacy.ACA3BC.Brush" Color="{StaticResource Legacy.ACA3BC.Color}" />
+  <Color x:Key="Legacy.AD9ABF.Color">#AD9ABF</Color>
+  <SolidColorBrush x:Key="Legacy.AD9ABF.Brush" Color="{StaticResource Legacy.AD9ABF.Color}" />
+  <Color x:Key="Legacy.AF8FFF.Color">#AF8FFF</Color>
+  <SolidColorBrush x:Key="Legacy.AF8FFF.Brush" Color="{StaticResource Legacy.AF8FFF.Color}" />
+  <Color x:Key="Legacy.B4A5C7.Color">#B4A5C7</Color>
+  <SolidColorBrush x:Key="Legacy.B4A5C7.Brush" Color="{StaticResource Legacy.B4A5C7.Color}" />
+  <Color x:Key="Legacy.B4A9C7.Color">#B4A9C7</Color>
+  <SolidColorBrush x:Key="Legacy.B4A9C7.Brush" Color="{StaticResource Legacy.B4A9C7.Color}" />
+  <Color x:Key="Legacy.B5ABC7.Color">#B5ABC7</Color>
+  <SolidColorBrush x:Key="Legacy.B5ABC7.Brush" Color="{StaticResource Legacy.B5ABC7.Color}" />
+  <Color x:Key="Legacy.B79AFF.Color">#B79AFF</Color>
+  <SolidColorBrush x:Key="Legacy.B79AFF.Brush" Color="{StaticResource Legacy.B79AFF.Color}" />
+  <Color x:Key="Legacy.B8A2D6.Color">#B8A2D6</Color>
+  <SolidColorBrush x:Key="Legacy.B8A2D6.Brush" Color="{StaticResource Legacy.B8A2D6.Color}" />
+  <Color x:Key="Legacy.B9A0DF.Color">#B9A0DF</Color>
+  <SolidColorBrush x:Key="Legacy.B9A0DF.Brush" Color="{StaticResource Legacy.B9A0DF.Color}" />
+  <Color x:Key="Legacy.BDA7DA.Color">#BDA7DA</Color>
+  <SolidColorBrush x:Key="Legacy.BDA7DA.Brush" Color="{StaticResource Legacy.BDA7DA.Color}" />
+  <Color x:Key="Legacy.BDB0D2.Color">#BDB0D2</Color>
+  <SolidColorBrush x:Key="Legacy.BDB0D2.Brush" Color="{StaticResource Legacy.BDB0D2.Color}" />
+  <Color x:Key="Legacy.BE9BFF.Color">#BE9BFF</Color>
+  <SolidColorBrush x:Key="Legacy.BE9BFF.Brush" Color="{StaticResource Legacy.BE9BFF.Color}" />
+  <Color x:Key="Legacy.BEA3F5.Color">#BEA3F5</Color>
+  <SolidColorBrush x:Key="Legacy.BEA3F5.Brush" Color="{StaticResource Legacy.BEA3F5.Color}" />
+  <Color x:Key="Legacy.BEB5CD.Color">#BEB5CD</Color>
+  <SolidColorBrush x:Key="Legacy.BEB5CD.Brush" Color="{StaticResource Legacy.BEB5CD.Color}" />
+  <Color x:Key="Legacy.BFA4FA.Color">#BFA4FA</Color>
+  <SolidColorBrush x:Key="Legacy.BFA4FA.Brush" Color="{StaticResource Legacy.BFA4FA.Color}" />
+  <Color x:Key="Legacy.C0A4F1.Color">#C0A4F1</Color>
+  <SolidColorBrush x:Key="Legacy.C0A4F1.Brush" Color="{StaticResource Legacy.C0A4F1.Color}" />
+  <Color x:Key="Legacy.C1B7D4.Color">#C1B7D4</Color>
+  <SolidColorBrush x:Key="Legacy.C1B7D4.Brush" Color="{StaticResource Legacy.C1B7D4.Color}" />
+  <Color x:Key="Legacy.C5ACFF.Color">#C5ACFF</Color>
+  <SolidColorBrush x:Key="Legacy.C5ACFF.Brush" Color="{StaticResource Legacy.C5ACFF.Color}" />
+  <Color x:Key="Legacy.C6B6DE.Color">#C6B6DE</Color>
+  <SolidColorBrush x:Key="Legacy.C6B6DE.Brush" Color="{StaticResource Legacy.C6B6DE.Color}" />
+  <Color x:Key="Legacy.C6C1D2.Color">#C6C1D2</Color>
+  <SolidColorBrush x:Key="Legacy.C6C1D2.Brush" Color="{StaticResource Legacy.C6C1D2.Color}" />
+  <Color x:Key="Legacy.CDB7FF.Color">#CDB7FF</Color>
+  <SolidColorBrush x:Key="Legacy.CDB7FF.Brush" Color="{StaticResource Legacy.CDB7FF.Color}" />
+  <Color x:Key="Legacy.D0DB70.Color">#D0DB70</Color>
+  <SolidColorBrush x:Key="Legacy.D0DB70.Brush" Color="{StaticResource Legacy.D0DB70.Color}" />
+  <Color x:Key="Legacy.E1D4FF.Color">#E1D4FF</Color>
+  <SolidColorBrush x:Key="Legacy.E1D4FF.Brush" Color="{StaticResource Legacy.E1D4FF.Color}" />
+  <Color x:Key="Legacy.E45D71.Color">#E45D71</Color>
+  <SolidColorBrush x:Key="Legacy.E45D71.Brush" Color="{StaticResource Legacy.E45D71.Color}" />
+  <Color x:Key="Legacy.E8E3F5.Color">#E8E3F5</Color>
+  <SolidColorBrush x:Key="Legacy.E8E3F5.Brush" Color="{StaticResource Legacy.E8E3F5.Color}" />
+  <Color x:Key="Legacy.ECDFFF.Color">#ECDFFF</Color>
+  <SolidColorBrush x:Key="Legacy.ECDFFF.Brush" Color="{StaticResource Legacy.ECDFFF.Color}" />
+  <Color x:Key="Legacy.F01B1A26.Color">#F01B1A26</Color>
+  <SolidColorBrush x:Key="Legacy.F01B1A26.Brush" Color="{StaticResource Legacy.F01B1A26.Color}" />
+  <Color x:Key="Legacy.F3F1FA.Color">#F3F1FA</Color>
+  <SolidColorBrush x:Key="Legacy.F3F1FA.Brush" Color="{StaticResource Legacy.F3F1FA.Color}" />
+  <SolidColorBrush x:Key="Theme.Canvas" Color="#101116" />
+  <SolidColorBrush x:Key="Theme.Sidebar" Color="#101116" />
+  <SolidColorBrush x:Key="Theme.Header" Color="#101116" />
+  <SolidColorBrush x:Key="Theme.Surface" Color="#191A23" />
+  <SolidColorBrush x:Key="Theme.SurfaceSoft" Color="#22232F" />
+  <SolidColorBrush x:Key="Theme.Border" Color="#2A2B38" />
+  <SolidColorBrush x:Key="Theme.Text" Color="#F3F1FA" />
+  <SolidColorBrush x:Key="Theme.Secondary" Color="#A9A3B8" />
+  <SolidColorBrush x:Key="Theme.Muted" Color="#7D748D" />
+  <SolidColorBrush x:Key="Theme.Accent" Color="#B79AFF" />
+  <SolidColorBrush x:Key="Theme.AccentSoft" Color="#2B253D" />
+  <SolidColorBrush x:Key="Theme.OnAccent" Color="#20162E" />
+  <SolidColorBrush x:Key="Theme.PrimaryHover" Color="#CBB3FF" />
+  <SolidColorBrush x:Key="Theme.PreviewTop" Color="#3C2F54" />
+  <SolidColorBrush x:Key="Theme.PreviewBottom" Color="#13141D" />
+  <SolidColorBrush x:Key="Theme.Pill" Color="#282432" />
+  <SolidColorBrush x:Key="Theme.Success" Color="#46CCA1" />
+  <Color x:Key="Legacy.252632.Color">#252632</Color>
+  <SolidColorBrush x:Key="Legacy.252632.Brush" Color="{StaticResource Legacy.252632.Color}" />
+  <Color x:Key="Legacy.E7E3F3.Color">#E7E3F3</Color>
+  <SolidColorBrush x:Key="Legacy.E7E3F3.Brush" Color="{StaticResource Legacy.E7E3F3.Color}" />
+  <Color x:Key="Legacy.363745.Color">#363745</Color>
+  <SolidColorBrush x:Key="Legacy.363745.Brush" Color="{StaticResource Legacy.363745.Color}" />
+  <Color x:Key="Legacy.181021.Color">#181021</Color>
+  <SolidColorBrush x:Key="Legacy.181021.Brush" Color="{StaticResource Legacy.181021.Color}" />
+  <Color x:Key="Legacy.C4ACFF.Color">#C4ACFF</Color>
+  <SolidColorBrush x:Key="Legacy.C4ACFF.Brush" Color="{StaticResource Legacy.C4ACFF.Color}" />
+  <Color x:Key="Legacy.D0CDDF.Color">#D0CDDF</Color>
+  <SolidColorBrush x:Key="Legacy.D0CDDF.Brush" Color="{StaticResource Legacy.D0CDDF.Color}" />
+  <Color x:Key="Legacy.DDD2ED.Color">#DDD2ED</Color>
+  <SolidColorBrush x:Key="Legacy.DDD2ED.Brush" Color="{StaticResource Legacy.DDD2ED.Color}" />
+  <Color x:Key="Legacy.D4C7E6.Color">#D4C7E6</Color>
+  <SolidColorBrush x:Key="Legacy.D4C7E6.Brush" Color="{StaticResource Legacy.D4C7E6.Color}" />
+  <Color x:Key="Legacy.C4ABF4.Color">#C4ABF4</Color>
+  <SolidColorBrush x:Key="Legacy.C4ABF4.Brush" Color="{StaticResource Legacy.C4ABF4.Color}" />
+  <Color x:Key="Legacy.2A2B38.Color">#2A2B38</Color>
+  <SolidColorBrush x:Key="Legacy.2A2B38.Brush" Color="{StaticResource Legacy.2A2B38.Color}" />
+  <Color x:Key="Legacy.A3A1B5.Color">#A3A1B5</Color>
+  <SolidColorBrush x:Key="Legacy.A3A1B5.Brush" Color="{StaticResource Legacy.A3A1B5.Color}" />
+  <Color x:Key="Legacy.D6C4FF.Color">#D6C4FF</Color>
+  <SolidColorBrush x:Key="Legacy.D6C4FF.Brush" Color="{StaticResource Legacy.D6C4FF.Color}" />
+  <Color x:Key="Legacy.6D5397.Color">#6D5397</Color>
+  <SolidColorBrush x:Key="Legacy.6D5397.Brush" Color="{StaticResource Legacy.6D5397.Color}" />
+  <Color x:Key="Legacy.A98AD9.Color">#A98AD9</Color>
+  <SolidColorBrush x:Key="Legacy.A98AD9.Brush" Color="{StaticResource Legacy.A98AD9.Color}" />
+  <Color x:Key="Legacy.675083.Color">#675083</Color>
+  <SolidColorBrush x:Key="Legacy.675083.Brush" Color="{StaticResource Legacy.675083.Color}" />
+  <Color x:Key="Legacy.3B334F.Color">#3B334F</Color>
+  <SolidColorBrush x:Key="Legacy.3B334F.Brush" Color="{StaticResource Legacy.3B334F.Color}" />
+  <Color x:Key="Legacy.9B7DDC.Color">#9B7DDC</Color>
+  <SolidColorBrush x:Key="Legacy.9B7DDC.Brush" Color="{StaticResource Legacy.9B7DDC.Color}" />
+  <Color x:Key="Legacy.D2BEFF.Color">#D2BEFF</Color>
+  <SolidColorBrush x:Key="Legacy.D2BEFF.Brush" Color="{StaticResource Legacy.D2BEFF.Color}" />
+  <Color x:Key="Legacy.9571ED.Color">#9571ED</Color>
+  <SolidColorBrush x:Key="Legacy.9571ED.Brush" Color="{StaticResource Legacy.9571ED.Color}" />
+  <Color x:Key="Legacy.463455.Color">#463455</Color>
+  <SolidColorBrush x:Key="Legacy.463455.Brush" Color="{StaticResource Legacy.463455.Color}" />
+  <Color x:Key="Legacy.372A48.Color">#372A48</Color>
+  <SolidColorBrush x:Key="Legacy.372A48.Brush" Color="{StaticResource Legacy.372A48.Color}" />
+  <Color x:Key="Legacy.2B253D.Color">#2B253D</Color>
+  <SolidColorBrush x:Key="Legacy.2B253D.Brush" Color="{StaticResource Legacy.2B253D.Color}" />
+  <Color x:Key="Legacy.24212E.Color">#24212E</Color>
+  <SolidColorBrush x:Key="Legacy.24212E.Brush" Color="{StaticResource Legacy.24212E.Color}" />
+  <Color x:Key="Legacy.CBB3FF.Color">#CBB3FF</Color>
+  <SolidColorBrush x:Key="Legacy.CBB3FF.Brush" Color="{StaticResource Legacy.CBB3FF.Color}" />
+  <Color x:Key="Legacy.D2BDFF.Color">#D2BDFF</Color>
+  <SolidColorBrush x:Key="Legacy.D2BDFF.Brush" Color="{StaticResource Legacy.D2BDFF.Color}" />
+</ResourceDictionary>
