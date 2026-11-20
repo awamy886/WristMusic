@@ -16,19 +16,20 @@ internal static class InteractionFeatureTests
     internal static async Task Run(string folder, Action<bool, string> check)
     {
         var defaults = new UserSettings();
-        check(!defaults.LaunchSteamVr && !defaults.ExperimentalFeaturesEnabled && !defaults.ShowListeningTime,
-            "Launching SteamVR and both experimental options are off by default");
+        check(!defaults.LaunchSteamVr && !defaults.ShowListeningTime &&
+            defaults.ShowCpuUsage && defaults.ShowMemoryUsage && defaults.ShowGpuUsage,
+            "Default settings enable the three utilization meters and leave listening time off");
         check(!SteamVrConnectionPolicy.ShouldInitialize(false, false) &&
             SteamVrConnectionPolicy.ApplicationType(true, false) == EVRApplicationType.VRApplication_Background &&
             SteamVrConnectionPolicy.ApplicationType(false, false) == EVRApplicationType.VRApplication_Background &&
             SteamVrConnectionPolicy.ApplicationType(false, true) == EVRApplicationType.VRApplication_Overlay,
             "Default startup and reconnect cannot start SteamVR, including a server exit race; explicit opt-in permits launch");
         var settings = new SettingsStore(Path.Combine(folder, "feature-settings.json"));
-        File.WriteAllText(settings.FilePath, "{\"FollowSteamVr\":true}");
-        check(settings.Load() is { FollowSteamVr: true, LaunchSteamVr: false, ExperimentalFeaturesEnabled: false },
-            "Old follow-SteamVR settings do not opt the user into launching SteamVR or experimental features");
-        settings.Save(new() { LaunchSteamVr = true, FollowSteamVr = false, ExperimentalFeaturesEnabled = true, ShowListeningTime = true, TotalListeningSeconds = 12345.5 });
-        check(settings.Load() is { LaunchSteamVr: true, FollowSteamVr: false, ExperimentalFeaturesEnabled: true, ShowListeningTime: true, TotalListeningSeconds: 12345.5 },
+        File.WriteAllText(settings.FilePath, "{\"FollowSteamVr\":true,\"ExperimentalFeaturesEnabled\":false,\"ShowGpuUsage\":false}");
+        check(settings.Load() is { FollowSteamVr: true, LaunchSteamVr: false, ShowCpuUsage: true, ShowMemoryUsage: true, ShowGpuUsage: false },
+            "Legacy master setting is ignored and individual meter choices are preserved");
+        settings.Save(new() { LaunchSteamVr = true, FollowSteamVr = false, ShowListeningTime = true, TotalListeningSeconds = 12345.5 });
+        check(settings.Load() is { LaunchSteamVr: true, FollowSteamVr: false, ShowListeningTime: true, TotalListeningSeconds: 12345.5 },
             "The two startup directions, experimental flags and listening total persist independently");
         double now = 0;
         var tracker = new ListeningTimeTracker(10, () => now);
@@ -52,15 +53,24 @@ internal static class InteractionFeatureTests
                 "Automatic startup-status detection also leaves a stopped SteamVR runtime stopped");
         }
         settings.Save(new());
+        using (var desktop = new MainViewModel(false, settings))
+        {
+            desktop.OverlayEnabled = false;
+            await desktop.Initialize(connectVr: false);
+            var elapsed = System.Diagnostics.Stopwatch.StartNew();
+            while ((desktop.UsageLabel.Contains("CPU —") || desktop.UsageLabel.Contains("内存 —")) && elapsed.Elapsed < TimeSpan.FromSeconds(8))
+                await Task.Delay(100);
+            check(desktop.UsageLabel.Contains('%') && !desktop.UsageLabel.Contains("CPU —") && !desktop.UsageLabel.Contains("内存 —"),
+                "Desktop meters sample CPU and memory with SteamVR and the wrist panel disconnected");
+        }
+        settings.Save(new());
         using var vm = new MainViewModel(true, settings);
         check(!vm.ListeningTimeVisible, "The original music panel has no listening badge by default");
         vm.ShowListeningTime = true;
-        check(!vm.ListeningTimeVisible, "The listening option requires the experimental master switch");
-        vm.ExperimentalFeaturesEnabled = true; vm.Save();
-        check(vm.ListeningTimeVisible && settings.Load() is { ExperimentalFeaturesEnabled: true, ShowListeningTime: true },
-            "Enabling the two switches reveals and saves the listening badge");
-        vm.ExperimentalFeaturesEnabled = false;
-        check(!vm.ListeningTimeVisible && vm.ShowListeningTime, "Disabling experimental features hides the badge and retains the optional preference");
+        vm.Save();
+        check(vm.ListeningTimeVisible && settings.Load() is { ShowListeningTime: true },
+            "The listening switch independently reveals and saves the badge");
+        vm.ShowListeningTime = false;
         var slider = new Slider { Width = 400, Height = 28, Minimum = 0, Maximum = vm.Duration, DataContext = vm };
         slider.SetBinding(Slider.ValueProperty, new Binding(nameof(MainViewModel.SeekPosition)) { Mode = BindingMode.TwoWay });
         slider.Measure(new(400, 28)); slider.Arrange(new(0, 0, 400, 28)); slider.UpdateLayout();
@@ -70,7 +80,6 @@ internal static class InteractionFeatureTests
         check(vm.Position > 170, "A single seek-bar click jumps to the clicked location without a drag");
         input.BeginAt(new(320, 14)); input.MoveAt(new(90, 14)); await input.Commit();
         check(vm.Position < 70, "The same seek bar retains drag-to-seek support");
-        vm.ShowListeningTime = false;
         var overlay = new OverlayView { DataContext = vm };
         overlay.Measure(new(820, 500)); overlay.Arrange(new(0, 0, 820, 500)); overlay.UpdateLayout();
         async Task Click(string name)
@@ -99,9 +108,16 @@ internal static class InteractionFeatureTests
         check(vm.DoubleBToOpen, "The VR settings double-B switch retains its binding when re-enabled");
         Render(overlay, Path.Combine(folder, "overlay-settings-general-dark.png"));
         await Click("VrDarkModeSwitch");
-        await Click("TestSettingsTab"); await Click("VrExperimentalSwitch"); await Click("VrListeningSwitch");
-        check(vm.ExperimentalFeaturesEnabled && vm.ShowListeningTime && vm.ListeningTimeVisible,
-            "VR experimental and listening switches retain their two-way bindings");
+        await Click("TestSettingsTab"); await Click("VrListeningSwitch");
+        await Click("VrCpuSwitch");
+        check(!vm.ShowCpuUsage && vm.UsageLabel.Contains("内存") && vm.UsageLabel.Contains("显卡") && !vm.UsageLabel.Contains("CPU"),
+            "The VR CPU switch removes only CPU from the header");
+        await Click("VrMemorySwitch"); await Click("VrGpuSwitch"); vm.Save();
+        check(vm.UsageLabel == "" && settings.Load() is { ShowCpuUsage: false, ShowMemoryUsage: false, ShowGpuUsage: false },
+            "All three switches work independently and persist");
+        await Click("VrCpuSwitch"); await Click("VrMemorySwitch"); await Click("VrGpuSwitch");
+        check(vm.ShowListeningTime && vm.ListeningTimeVisible,
+            "VR meter switches leave listening time enabled");
         Render(overlay, Path.Combine(folder, "overlay-settings-tests.png"));
         await Click("BackToMusicButton");
         check(!vm.VrSettingsOpen && ((TextBlock)overlay.FindName("ListeningBadge")).Visibility == Visibility.Visible,
@@ -112,7 +128,7 @@ internal static class InteractionFeatureTests
         check(vm.Position > 100, "VR seek press previews the absolute clicked position");
         overlay.CancelInteraction();
         check(vm.Position == 84, "Lost tracking cancels an unfinished seek instead of committing it");
-        vm.ExperimentalFeaturesEnabled = false; vm.ShowListeningTime = false; vm.DarkMode = false;
+        vm.ShowListeningTime = false; vm.DarkMode = false;
     }
     private static void Render(OverlayView view, string path)
     {

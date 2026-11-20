@@ -48,9 +48,22 @@ internal static class CompactOverlayTests
         check(Top("PlayPauseButton") >= Top("MusicSourceText") + Element("MusicSourceText").ActualHeight + 2,
             "Compact transport buttons remain below the metadata without overlapping it");
         Render(view, Path.Combine(folder, "overlay-compact.png"));
+        vm.Settings.LastSeenReleaseNotes = ReleaseNotes.BuildVersion;
+        vm.Settings.LastSeenVrReleaseNotes = "3.5.5";
+        vm.ShowUnreadVrNotes();
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle); Layout();
+        check(Element("VrNotesDialog").Visibility == Visibility.Visible && Top("VrDismissNotesButton") + Element("VrDismissNotesButton").ActualHeight <= view.ActualHeight,
+            "First VR visit shows the announcement even after desktop viewing and fits the compact texture");
+        await Click("SettingsButton");
+        check(vm.VrNotesOpen && !vm.VrSettingsOpen, "The VR announcement blocks ray clicks on covered controls");
+        Render(view, Path.Combine(folder, "overlay-release-notes.png"));
+        await Click("VrDismissNotesButton");
+        vm.ShowUnreadVrNotes();
+        check(!vm.VrNotesOpen && store.Load().LastSeenVrReleaseNotes == ReleaseNotes.BuildVersion,
+            "Confirming the VR notice persists its read receipt and prevents repeat prompts");
         vm.DarkMode = true; await Dispatcher.Yield(DispatcherPriority.ApplicationIdle); Layout();
         Render(view, Path.Combine(folder, "overlay-compact-dark.png"));
-        vm.ExperimentalFeaturesEnabled = true; vm.ShowListeningTime = true; Layout();
+        vm.ShowListeningTime = true; Layout();
         check(Element("ListeningBadge").Visibility == Visibility.Visible && Top("ListeningBadge") + Element("ListeningBadge").ActualHeight < view.ActualHeight,
             "The optional listening badge still fits in the compact panel");
         await Click("SettingsButton");
@@ -65,12 +78,18 @@ internal static class CompactOverlayTests
         check(vm.Scale < 90, "A media-state refresh does not interrupt dragging a visible VR settings slider");
         await Click("AboutSettingsTab");
         check(vm.VrSettingsTab == "about" && Element("VrAboutPanel").Visibility == Visibility.Visible &&
-            ((TextBlock)Element("VrAboutVersion")).Text == "v3.5.0·星梦屿工作室" &&
+            ((TextBlock)Element("VrAboutVersion")).Text == "v4.0.0·星梦屿工作室" &&
             ((TextBlock)Element("VrAboutAuthor")).Text == "作者:awa星野厨のMY" &&
             ((TextBlock)Element("VrAboutGroup")).Text == "交流群:1049685082" &&
             ((TextBlock)Element("VrAboutFree")).Text == "本程序完全免费·o(*≧▽≦)ツ┏━┓",
             "The VR About tab opens by controller ray and preserves the exact desktop About text");
         Render(view, Path.Combine(folder, "overlay-about-dark.png"));
+        await Click("VrOpenNotesButton");
+        check(vm.VrNotesOpen && Element("VrNotesDialog").Visibility == Visibility.Visible,
+            "The VR settings button next to About reopens the same announcement by ray");
+        await Click("VrDismissNotesButton");
+        check(vm.VrSettingsOpen && vm.VrSettingsTab == "about" && !vm.VrNotesOpen,
+            "Dismissing a reopened notice returns to the previous VR settings tab");
         vm.DarkMode = false; await Dispatcher.Yield(DispatcherPriority.ApplicationIdle); Layout();
         Render(view, Path.Combine(folder, "overlay-about.png"));
         await Click("BackToMusicButton");

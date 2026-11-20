@@ -67,9 +67,12 @@
     <Border Style="{StaticResource Card}" Margin="0,0,0,18"><Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="180" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="SteamVR 连接" FontSize="17" FontWeight="SemiBold" /><TextBlock Text="{Binding VrStatus}" Foreground="{DynamicResource Legacy.B79AFF.Brush}" Margin="0,12,0,0" /><TextBlock Text="{Binding VrDetail}" Foreground="{DynamicResource Legacy.8E809F.Brush}" TextWrapping="Wrap" FontSize="11" Margin="0,8,20,0" LineHeight="21" /></StackPanel><Button Grid.Column="1" Content="重新连接 SteamVR" Command="{Binding ReconnectCommand}" VerticalAlignment="Center" /></Grid></Border>
     <Border Style="{StaticResource Card}" Margin="0,0,0,18">
       <StackPanel>
-        <DockPanel><CheckBox DockPanel.Dock="Right" Content="启用测试功能" IsChecked="{Binding ExperimentalFeaturesEnabled, Mode=TwoWay}" Margin="16,0,0,0" /><TextBlock Text="测试功能" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center" /></DockPanel>
-        <TextBlock Text="默认关闭。可选择启用下方功能，设置自动保存。" Foreground="{DynamicResource Theme.Secondary}" FontSize="12" Margin="0,12,0,12" />
-        <StackPanel IsEnabled="{Binding ExperimentalFeaturesEnabled}">
+        <TextBlock Text="测试功能" FontSize="17" FontWeight="SemiBold" />
+        <TextBlock Text="选择在桌面「正在播放」页和 VR 手腕面板顶部显示的使用率。" Foreground="{DynamicResource Theme.Secondary}" FontSize="12" Margin="0,12,0,12" />
+        <StackPanel>
+          <CheckBox Content="显示 CPU 使用率" IsChecked="{Binding ShowCpuUsage}" Margin="0,0,0,8" />
+          <CheckBox Content="显示内存使用率" IsChecked="{Binding ShowMemoryUsage}" Margin="0,0,0,8" />
+          <CheckBox Content="显示显卡使用率" IsChecked="{Binding ShowGpuUsage}" Margin="0,0,0,12" />
           <CheckBox Content="显示当前累计听歌时长" IsChecked="{Binding ShowListeningTime, Mode=TwoWay}" />
           <TextBlock Text="在桌面与 VR 原有音乐面板上显示累计听歌时长。仅统计开启此项后的实际播放时间，暂停不累计；切歌和跳转不会重复计时，关闭程序后保留。" Foreground="{DynamicResource Theme.Secondary}" FontSize="11" TextWrapping="Wrap" Margin="54,2,0,12" LineHeight="21" />
           <TextBlock Text="{Binding ListeningTimeLabel}" Foreground="{DynamicResource Theme.Accent}" FontSize="16" Margin="54,0,0,0" Visibility="{Binding ListeningTimeVisible, Converter={StaticResource BoolVisibility}}" />
@@ -78,8 +81,11 @@
     </Border>
     <Border Style="{StaticResource Card}">
       <StackPanel>
-        <TextBlock Text="关于腕间音乐" FontSize="17" FontWeight="SemiBold" />
-        <TextBlock Text="v3.5.0·星梦屿工作室" Foreground="{DynamicResource Theme.Accent}" FontSize="14" Margin="0,16,0,12" />
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="关于腕间音乐" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center" />
+          <Button x:Name="OpenNotesButton" Content="本次更新内容" Click="ShowReleaseNotes" Margin="16,0,0,0" Padding="14,6" />
+        </StackPanel>
+        <TextBlock Text="v4.0.0·星梦屿工作室" Foreground="{DynamicResource Theme.Accent}" FontSize="14" Margin="0,16,0,12" />
         <TextBlock Text="作者:awa星野厨のMY" Foreground="{DynamicResource Theme.Secondary}" FontSize="13" Margin="0,0,0,10" TextWrapping="Wrap" />
         <TextBlock Text="交流群:1049685082" Foreground="{DynamicResource Theme.Secondary}" FontSize="13" Margin="0,0,0,10" TextWrapping="Wrap" />
         <TextBlock Text="本程序完全免费·o(*≧▽≦)ツ┏━┓" Foreground="{DynamicResource Theme.Secondary}" FontSize="13" TextWrapping="Wrap" />

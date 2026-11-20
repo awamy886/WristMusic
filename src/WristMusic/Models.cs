@@ -80,9 +80,12 @@ public sealed class UserSettings
     public bool OpenLastPlayer { get; set; } = true;
     public bool AutoUpdate { get; set; } = true;
     public string? LastSeenReleaseNotes { get; set; }
+    public string? LastSeenVrReleaseNotes { get; set; }
     public string? LastPlayerId { get; set; }
     public bool LaunchSteamVr { get; set; }
-    public bool ExperimentalFeaturesEnabled { get; set; }
+    public bool ShowCpuUsage { get; set; } = true;
+    public bool ShowMemoryUsage { get; set; } = true;
+    public bool ShowGpuUsage { get; set; } = true;
     public bool ShowListeningTime { get; set; }
     public double TotalListeningSeconds { get; set; }
     public void Normalize()

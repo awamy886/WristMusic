@@ -138,6 +138,7 @@ public sealed class OverlayService : IDisposable
             if (_appliedScale != _vm.Scale) { Check(_overlay!.SetOverlayWidthInMeters(_handle, (float)(0.36 * _vm.Scale / 100))); _appliedScale = _vm.Scale; }
             if (_appliedOpacity != _vm.Opacity) { Check(_overlay!.SetOverlayAlpha(_handle, (float)(_vm.Opacity / 100))); _appliedOpacity = _vm.Opacity; }
             _stage = "panel layout";
+            if (!_visible) _vm.ShowUnreadVrNotes();
             var resized = EnsureSurface();
             // Submit a complete frame before showing; never expose an empty new texture.
             if (!_visible || resized) { Render(); _renderClock.Restart(); }

@@ -111,6 +111,8 @@ internal static class SmokeTests
             foreach (var page in new[] { "player", "apps", "wrist", "hotkeys", "settings" })
             {
                 vm.Page = page; await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+                Check(window.DesktopUsageHeader.Visibility == (page == "player" ? Visibility.Visible : Visibility.Collapsed) && window.DesktopUsageHeader.Text == vm.UsageLabel,
+                    $"Light desktop meter visibility and content on {page}");
                 Render(window, Path.Combine(folder, page + ".png"));
             }
             Check(File.Exists(Path.Combine(folder, "wrist.png")), "All five desktop pages render to PNG");
@@ -130,6 +132,8 @@ internal static class SmokeTests
             foreach (var page in new[] { "player", "apps", "wrist", "hotkeys", "settings" })
             {
                 vm.Page = page; await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+                Check(window.DesktopUsageHeader.Visibility == (page == "player" ? Visibility.Visible : Visibility.Collapsed) && window.DesktopUsageHeader.Text == vm.UsageLabel,
+                    $"Dark desktop meter visibility and content on {page}");
                 Render(window, Path.Combine(folder, page + "-dark.png"));
             }
             overlay.UpdateLayout();
@@ -173,25 +177,34 @@ internal static class SmokeTests
     private static async Task CheckReleaseNotes(string folder, Action<bool, string> check)
     {
         var store = new SettingsStore(Path.Combine(folder, "release-notes-settings.json"));
-        File.WriteAllText(store.FilePath, "{\"DarkMode\":true}");
+        store.Save(new() { DarkMode = true, LastSeenReleaseNotes = "3.5.5" });
         using var vm = new MainViewModel(true, store);
         var owner = new Window { Width = 460, Height = 380, Left = -10000, Top = -10000,
             ShowInTaskbar = false, ShowActivated = false, WindowState = WindowState.Minimized };
         try
         {
+            var settingsPage = new Views.SettingsPage { DataContext = vm };
+            owner.Content = settingsPage;
             Views.ReleaseNotesWindow.ShowOnFirstVisit(owner, vm);
             owner.Show();
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
-            check(owner.OwnedWindows.Count == 0 && store.Load().LastSeenReleaseNotes is null,
+            check(owner.OwnedWindows.Count == 0 && store.Load().LastSeenReleaseNotes == "3.5.5",
                 "Minimized startup preserves the unread release announcement");
             owner.WindowState = WindowState.Normal;
             var timeout = Stopwatch.StartNew();
-            while (vm.Settings.LastSeenReleaseNotes is null && timeout.Elapsed < TimeSpan.FromSeconds(5))
+            while (ReleaseNotes.IsUnread(vm.Settings.LastSeenReleaseNotes) && timeout.Elapsed < TimeSpan.FromSeconds(5))
                 await Task.Delay(25);
             var notice = owner.OwnedWindows.OfType<Views.ReleaseNotesWindow>().Single();
-            check(notice.IsVisible && notice.Heading.Text == "v3.5.0 更新内容" && store.Load().LastSeenReleaseNotes == "3.5.0",
-                "Opening the desktop renders the 3.5.0 announcement and persists its version for older settings");
+            check(notice.IsVisible && notice.Heading.Text == "v4.0.0更新内容" && store.Load().LastSeenReleaseNotes == "4.0.0",
+                "Opening the desktop renders the 4.0.0 announcement and persists its version for older settings");
             notice.Close();
+            var click = System.Windows.Controls.Primitives.ButtonBase.ClickEvent;
+            settingsPage.OpenNotesButton.RaiseEvent(new RoutedEventArgs(click));
+            settingsPage.OpenNotesButton.RaiseEvent(new RoutedEventArgs(click));
+            var reopened = owner.OwnedWindows.OfType<Views.ReleaseNotesWindow>().Single();
+            check(reopened.IsVisible && reopened.Heading.Text == "v4.0.0更新内容",
+                "The desktop About button reopens the announcement without duplicating the window");
+            reopened.Close();
             using var restarted = new MainViewModel(true, store);
             Views.ReleaseNotesWindow.ShowOnFirstVisit(owner, restarted);
             owner.WindowState = WindowState.Minimized;

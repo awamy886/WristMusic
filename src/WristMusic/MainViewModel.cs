@@ -9,7 +9,7 @@ using WristMusic.Services;
 
 namespace WristMusic;
 
-public sealed class MainViewModel : Observable, IDisposable
+public sealed partial class MainViewModel : Observable, IDisposable
 {
     public PlayerService Players { get; } = new();
     public MediaService Media { get; }
@@ -32,6 +32,8 @@ public sealed class MainViewModel : Observable, IDisposable
     public ActionCommand NeteaseBridgeGuideCommand { get; }
     public ActionCommand VrSettingsCommand { get; }
     public ActionCommand VrSettingsTabCommand { get; }
+    public ActionCommand OpenVrNotesCommand { get; }
+    public ActionCommand DismissVrNotesCommand { get; }
     public ActionCommand HideVrPanelCommand { get; }
     internal int VrOpenRequest { get; private set; }
     private readonly ListeningTimeTracker _listening;
@@ -68,6 +70,14 @@ public sealed class MainViewModel : Observable, IDisposable
         VrSettingsCommand = new(p => VrSettingsOpen = p?.ToString() == "close" ? false : !VrSettingsOpen);
         VrSettingsTabCommand = new(p => VrSettingsTab = p?.ToString() switch { "general" => "general", "tests" => "tests", "about" => "about", _ => "wrist" });
         HideVrPanelCommand = new(_ => OverlayEnabled = false);
+        OpenVrNotesCommand = new(_ => VrNotesOpen = true);
+        DismissVrNotesCommand = new(_ =>
+        {
+            VrNotesOpen = false;
+            if (!ReleaseNotes.IsUnread(Settings.LastSeenVrReleaseNotes)) return;
+            Settings.LastSeenVrReleaseNotes = ReleaseNotes.BuildVersion;
+            Save();
+        });
         ResetCommand = new(_ => { Scale = 100; Opacity = 95; OffsetX = 0; OffsetY = 8; OffsetZ = 6; Tilt = -75; Status = "已恢复默认面板位置。"; });
         ReconnectCommand = new(_ => Overlay?.Reconnect());
         RefreshSteamVrStartupCommand = new(_ => _ = RefreshSteamVrStartup(), _ => CanChangeSteamVrStartup);
@@ -87,6 +97,8 @@ public sealed class MainViewModel : Observable, IDisposable
         if (!_demo) await Refresh();
         if (connectVr) { Overlay = new(this); Overlay.Start(); }
         if (startTimers) { _poll.Start(); _clock.Start(); }
+        if (startTimers && !_disposed && !_demo && _usageLifetime is null)
+            _ = SampleUsage(_usageLifetime = new CancellationTokenSource());
         if (!_demo) _ = RefreshSteamVrStartup(false);
         if (_store.LoadError is not null) Status = _store.LoadError;
     }
@@ -188,13 +200,18 @@ public sealed class MainViewModel : Observable, IDisposable
         _save.Stop(); _save.Start();
     }
     public bool LaunchSteamVr { get => Settings.LaunchSteamVr; set { if (Settings.LaunchSteamVr == value) return; Settings.LaunchSteamVr = value; Changed(); } }
-    public bool ExperimentalFeaturesEnabled { get => Settings.ExperimentalFeaturesEnabled; set { if (Settings.ExperimentalFeaturesEnabled == value) return; Settings.ExperimentalFeaturesEnabled = value; UpdateListeningTime(); Changed(); Notify(nameof(ListeningTimeVisible)); } }
     public bool ShowListeningTime { get => Settings.ShowListeningTime; set { if (Settings.ShowListeningTime == value) return; Settings.ShowListeningTime = value; UpdateListeningTime(); Changed(); Notify(nameof(ListeningTimeVisible)); } }
-    public bool ListeningTimeVisible => ExperimentalFeaturesEnabled && ShowListeningTime;
+    public bool ListeningTimeVisible => ShowListeningTime;
     public string ListeningTimeLabel => "累计听歌 " + ListeningTimeTracker.Format(Settings.TotalListeningSeconds);
     private bool _vrSettingsOpen;
     public bool VrSettingsOpen { get => _vrSettingsOpen; set { if (Set(ref _vrSettingsOpen, value)) { Notify(nameof(VrPlayerVisible)); Notify(nameof(VrPanelHeight)); } } }
     public bool VrPlayerVisible => !VrSettingsOpen;
+    private bool _vrNotesOpen;
+    public bool VrNotesOpen { get => _vrNotesOpen; private set => Set(ref _vrNotesOpen, value); }
+    internal void ShowUnreadVrNotes()
+    {
+        if (ReleaseNotes.IsUnread(Settings.LastSeenVrReleaseNotes)) VrNotesOpen = true;
+    }
     public bool VrHasProgress => UseDemo || _state is { TimelineKnown: true } s && s.Max > s.Min;
     public double VrPanelHeight => VrSettingsOpen || VrHasProgress ? 500 : 405;
     private string _vrSettingsTab = "wrist";
@@ -510,5 +527,5 @@ public sealed class MainViewModel : Observable, IDisposable
         foreach (var app in Players.Apps) if (!string.IsNullOrEmpty(app.ExePath)) Settings.AppPaths[app.Id] = app.ExePath;
         try { _store.Save(Settings); _lastListeningSave = Settings.TotalListeningSeconds; } catch (Exception e) { Status = "设置保存失败：" + e.Message; }
     }
-    public void Dispose() { if (_disposed) return; _disposed = true; _updateLoop?.Cancel(); _poll.Dispose(); _clock.Dispose(); _save.Dispose(); Overlay?.Dispose(); Media.Dispose(); Save(); }
+    public void Dispose() { if (_disposed) return; _disposed = true; _usageLifetime?.Cancel(); _updateLoop?.Cancel(); _poll.Dispose(); _clock.Dispose(); _save.Dispose(); Overlay?.Dispose(); Media.Dispose(); Save(); }
 }

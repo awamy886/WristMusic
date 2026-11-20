@@ -83,7 +83,7 @@ public static class NeteaseBridgeSetup
     {
         if (File.Exists(path) && Hash(path) == hash) return path;
         using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(90) };
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("WristMusic/3.5.0");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("WristMusic/4.0.0");
         var data = await client.GetByteArrayAsync(url);
         if (Convert.ToHexString(SHA256.HashData(data)) != hash) throw new InvalidDataException("插件文件校验失败，安装已取消。");
         await File.WriteAllBytesAsync(path, data); return path;
