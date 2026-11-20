@@ -77,8 +77,9 @@ public sealed class UserSettings
     public bool DarkMode { get; set; }
     public bool FollowSteamVr { get; set; }
     public bool ForceClosePlayer { get; set; }
-    public bool OpenLastPlayer { get; set; }
+    public bool OpenLastPlayer { get; set; } = true;
     public bool AutoUpdate { get; set; } = true;
+    public string? LastSeenReleaseNotes { get; set; }
     public string? LastPlayerId { get; set; }
     public bool LaunchSteamVr { get; set; }
     public bool ExperimentalFeaturesEnabled { get; set; }

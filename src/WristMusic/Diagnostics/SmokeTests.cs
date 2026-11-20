@@ -20,6 +20,7 @@ internal static class SmokeTests
         void Check(bool ok, string name) { results.Add(new { name, passed = ok }); if (!ok) throw new InvalidOperationException(name); }
         try
         {
+            await CheckReleaseNotes(folder, Check);
             CheckBrowserExclusion(folder, Check);
             var updateSettings = JsonSerializer.Deserialize<UserSettings>("{}")!;
             Check(updateSettings.AutoUpdate && !JsonSerializer.Deserialize<UserSettings>("{\"AutoUpdate\":false}")!.AutoUpdate,
@@ -169,6 +170,38 @@ internal static class SmokeTests
             return 1;
         }
     }
+    private static async Task CheckReleaseNotes(string folder, Action<bool, string> check)
+    {
+        var store = new SettingsStore(Path.Combine(folder, "release-notes-settings.json"));
+        File.WriteAllText(store.FilePath, "{\"DarkMode\":true}");
+        using var vm = new MainViewModel(true, store);
+        var owner = new Window { Width = 460, Height = 380, Left = -10000, Top = -10000,
+            ShowInTaskbar = false, ShowActivated = false, WindowState = WindowState.Minimized };
+        try
+        {
+            Views.ReleaseNotesWindow.ShowOnFirstVisit(owner, vm);
+            owner.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            check(owner.OwnedWindows.Count == 0 && store.Load().LastSeenReleaseNotes is null,
+                "Minimized startup preserves the unread release announcement");
+            owner.WindowState = WindowState.Normal;
+            var timeout = Stopwatch.StartNew();
+            while (vm.Settings.LastSeenReleaseNotes is null && timeout.Elapsed < TimeSpan.FromSeconds(5))
+                await Task.Delay(25);
+            var notice = owner.OwnedWindows.OfType<Views.ReleaseNotesWindow>().Single();
+            check(notice.IsVisible && notice.Heading.Text == "v3.5.0 更新内容" && store.Load().LastSeenReleaseNotes == "3.5.0",
+                "Opening the desktop renders the 3.5.0 announcement and persists its version for older settings");
+            notice.Close();
+            using var restarted = new MainViewModel(true, store);
+            Views.ReleaseNotesWindow.ShowOnFirstVisit(owner, restarted);
+            owner.WindowState = WindowState.Minimized;
+            owner.WindowState = WindowState.Normal;
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            check(owner.OwnedWindows.Count == 0, "Restart with the saved settings does not repeat the announcement");
+        }
+        finally { owner.Close(); }
+    }
+
     private static void CheckBrowserExclusion(string folder, Action<bool, string> check)
     {
         var store = new SettingsStore(Path.Combine(folder, "browser-selection.json"));
@@ -200,8 +233,10 @@ internal static class SmokeTests
         using var vm = new MainViewModel(false, store);
         var spotify = vm.Players.Apps.Single(a => a.Id == "spotify");
         var qq = vm.Players.Apps.Single(a => a.Id == "qq");
-        check(!vm.OpenLastPlayer && !vm.ForceClosePlayer && vm.ResolveOpenTarget(null) is null,
-            "Existing settings default both player options off");
+        check(vm.OpenLastPlayer && !vm.ForceClosePlayer && vm.ResolveOpenTarget(null) is null,
+            "Settings without a preference enable open-last while keeping force-close off");
+        check(!JsonSerializer.Deserialize<UserSettings>("{\"OpenLastPlayer\":false}")!.OpenLastPlayer,
+            "Existing explicit open-last opt-out survives the default change");
         foreach (var source in new[] { "Spotify.exe", "SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify" })
         {
             vm.ApplyMediaState(new(source, "Track", "Artist", true, 5, 0, 100, true, true, true, true, null, DateTimeOffset.UtcNow));

@@ -54,7 +54,7 @@ internal sealed class UpdateService
             Regex.IsMatch(p.Digest, @"\A[0-9A-F]{64}\z") ? p : null;
     }
 
-    internal async Task<string> Check(CancellationToken token)
+    internal async Task<string> Check(CancellationToken token, bool downloadUpdate)
     {
         await _gate.WaitAsync(token).ConfigureAwait(false);
         try
@@ -70,6 +70,7 @@ internal sealed class UpdateService
                 throw new InvalidDataException("无法识别 GitHub 发行页。");
             var tag = url[prefix.Length..];
             if (!Newer(tag, _current)) return "已是最新版本";
+            if (!downloadUpdate) return $"发现新版本 {tag}，开启自动更新即可下载";
             var setup = Installed;
             var name = FileName(tag, setup);
             var download = Repository + "/releases/download/" + tag + "/";

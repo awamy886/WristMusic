@@ -81,6 +81,7 @@ public partial class App : Application
         if (vm.AutoUpdate && vm.Updates.StartPending(e.Args.Contains("--steamvr-startup"))) { Shutdown(); return; }
         vm.StartUpdates();
         var window = new MainWindow(vm); MainWindow = window;
+        Views.ReleaseNotesWindow.ShowOnFirstVisit(window, vm);
         if (e.Args.Contains("--steamvr-startup")) window.WindowState = WindowState.Minimized;
         window.Show();
         await vm.Initialize();

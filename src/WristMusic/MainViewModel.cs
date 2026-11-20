@@ -50,6 +50,8 @@ public sealed class MainViewModel : Observable, IDisposable
     public MainViewModel(bool demo = false, SettingsStore? store = null, IAutoStartClient? autoStartClient = null)
     {
         Media = new(Players.Apps);
+        CheckUpdatesCommand = new(_ => { if (!_checkingUpdate && !_disposed) RestartUpdates(manual: true); },
+            _ => !_checkingUpdate && !_disposed);
         _store = store ?? new(); Settings = _store.Load();
         _listening = new(Settings.TotalListeningSeconds); _lastListeningSave = Settings.TotalListeningSeconds;
         _autoStart = autoStartClient ?? new SteamVrAutoStartService();
@@ -102,6 +104,13 @@ public sealed class MainViewModel : Observable, IDisposable
     internal UpdateService Updates { get; } = new();
     private CancellationTokenSource? _updateLoop;
     private bool _updatesStarted;
+    private bool _checkingUpdate;
+    public ActionCommand CheckUpdatesCommand { get; }
+    private void SetCheckingUpdate(bool value)
+    {
+        _checkingUpdate = value;
+        CheckUpdatesCommand.NotifyCanExecuteChanged();
+    }
     private string _updateStatus = "";
     public string UpdateStatus { get => _updateStatus; private set => Set(ref _updateStatus, value); }
     public bool AutoUpdate
@@ -116,11 +125,11 @@ public sealed class MainViewModel : Observable, IDisposable
         }
     }
     internal void StartUpdates() { _updatesStarted = true; RestartUpdates(); }
-    private void RestartUpdates()
+    private void RestartUpdates(bool manual = false)
     {
         _updateLoop?.Cancel();
         _updateLoop = null;
-        if (!AutoUpdate) { UpdateStatus = "已关闭"; return; }
+        if (!AutoUpdate && !manual) { SetCheckingUpdate(false); UpdateStatus = "已关闭"; return; }
         _updateLoop = new();
         _ = CheckUpdates(_updateLoop);
     }
@@ -131,14 +140,18 @@ public sealed class MainViewModel : Observable, IDisposable
         {
             while (!token.IsCancellationRequested)
             {
+                SetCheckingUpdate(true);
                 UpdateStatus = "正在检查 GitHub 发行版…";
+                var downloadUpdate = AutoUpdate;
                 try
                 {
-                    var result = await Task.Run(() => Updates.Check(token), token);
+                    var result = await Task.Run(() => Updates.Check(token, downloadUpdate), token);
                     if (!token.IsCancellationRequested) UpdateStatus = result;
                 }
-                catch (Exception) when (!token.IsCancellationRequested) { UpdateStatus = "暂时无法检查或下载更新，稍后自动重试"; }
-                await Task.Delay(TimeSpan.FromHours(6), token);
+                catch (Exception) when (!token.IsCancellationRequested) { UpdateStatus = "检测更新失败，请稍后重试"; }
+                finally { if (ReferenceEquals(_updateLoop, loop)) SetCheckingUpdate(false); }
+                if (!downloadUpdate) break;
+                await Task.Delay(TimeSpan.FromHours(1), token);
             }
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }

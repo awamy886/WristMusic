@@ -49,6 +49,7 @@
             <CheckBox Content="关闭音乐软件时直接终止进程" IsChecked="{Binding ForceClosePlayer}" Margin="0,4,0,14" />
             <CheckBox Content="打开上次使用的播放器" IsChecked="{Binding OpenLastPlayer}" />
             <CheckBox Content="自动更新" IsChecked="{Binding AutoUpdate}" Margin="0,14,0,4" />
+            <Button Content="手动检测更新" Command="{Binding CheckUpdatesCommand}" HorizontalAlignment="Left" Padding="14,6" Margin="0,4,0,6" />
             <TextBlock Text="{Binding UpdateStatus}" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource Theme.Secondary}" />
           </StackPanel>
           <StackPanel Margin="0,0,12,0">
@@ -66,7 +67,7 @@
           <TextBlock Text="累计开启此项后的实际播放时间，暂停不累计，自动保存。" FontSize="12" Foreground="{DynamicResource Theme.Secondary}" Margin="54,0,0,18" />
           <TextBlock Text="{Binding ListeningTimeLabel}" Foreground="{DynamicResource Theme.Accent}" FontSize="24" Margin="54,0,0,0" Visibility="{Binding ListeningTimeVisible, Converter={StaticResource BoolVisibility}}" />
         </StackPanel>
-        <StackPanel x:Name="VrAboutPanel" Grid.Row="2" Visibility="{Binding VrSettingsTab, Converter={StaticResource VrTabVisibility}, ConverterParameter=about}" Margin="12,20,12,0"><TextBlock Text="腕间音乐" FontSize="28" FontWeight="SemiBold" Margin="0,0,0,16" /><TextBlock x:Name="VrAboutVersion" Text="v3.0.0·星梦屿工作室" Foreground="{DynamicResource Theme.Accent}" FontSize="18" Margin="0,0,0,22" /><TextBlock x:Name="VrAboutAuthor" Text="作者:awa星野厨のMY" Foreground="{DynamicResource Theme.Secondary}" FontSize="17" Margin="0,0,0,16" /><TextBlock x:Name="VrAboutGroup" Text="交流群:1049685082" Foreground="{DynamicResource Theme.Secondary}" FontSize="17" Margin="0,0,0,16" /><TextBlock x:Name="VrAboutFree" Text="本程序完全免费·o(*≧▽≦)ツ┏━┓" Foreground="{DynamicResource Theme.Secondary}" FontSize="16" TextWrapping="Wrap" /></StackPanel><TextBlock Grid.Row="3" Text="设置自动保存 · 用另一只手柄瞄准，按扳机操作" FontSize="11" Foreground="{DynamicResource Theme.Secondary}" VerticalAlignment="Bottom" />
+        <StackPanel x:Name="VrAboutPanel" Grid.Row="2" Visibility="{Binding VrSettingsTab, Converter={StaticResource VrTabVisibility}, ConverterParameter=about}" Margin="12,20,12,0"><TextBlock Text="腕间音乐" FontSize="28" FontWeight="SemiBold" Margin="0,0,0,16" /><TextBlock x:Name="VrAboutVersion" Text="v3.5.0·星梦屿工作室" Foreground="{DynamicResource Theme.Accent}" FontSize="18" Margin="0,0,0,22" /><TextBlock x:Name="VrAboutAuthor" Text="作者:awa星野厨のMY" Foreground="{DynamicResource Theme.Secondary}" FontSize="17" Margin="0,0,0,16" /><TextBlock x:Name="VrAboutGroup" Text="交流群:1049685082" Foreground="{DynamicResource Theme.Secondary}" FontSize="17" Margin="0,0,0,16" /><TextBlock x:Name="VrAboutFree" Text="本程序完全免费·o(*≧▽≦)ツ┏━┓" Foreground="{DynamicResource Theme.Secondary}" FontSize="16" TextWrapping="Wrap" /></StackPanel><TextBlock Grid.Row="3" Text="设置自动保存 · 用另一只手柄瞄准，按扳机操作" FontSize="11" Foreground="{DynamicResource Theme.Secondary}" VerticalAlignment="Bottom" />
       </Grid></Grid>
     </Border>
     <Canvas IsHitTestVisible="False"><Ellipse x:Name="Pointer" Width="15" Height="15" Fill="{DynamicResource Legacy.ECDFFF.Brush}" Stroke="{DynamicResource Legacy.9E72FF.Brush}" StrokeThickness="3" Visibility="Collapsed"><Ellipse.Effect><DropShadowEffect Color="{DynamicResource Legacy.BE9BFF.Color}" BlurRadius="18" ShadowDepth="0" /></Ellipse.Effect></Ellipse></Canvas>
