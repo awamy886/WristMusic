@@ -125,6 +125,9 @@ public sealed partial class MainViewModel : Observable, IDisposable
     }
     private string _updateStatus = "";
     public string UpdateStatus { get => _updateStatus; private set => Set(ref _updateStatus, value); }
+    private double? _downloadPercent;
+    public double? DownloadPercent { get => _downloadPercent; private set { if (Set(ref _downloadPercent, value)) Notify(nameof(ShowDownloadBar)); } }
+    public bool ShowDownloadBar => DownloadPercent.HasValue;
     public bool AutoUpdate
     {
         get => Settings.AutoUpdate;
@@ -141,6 +144,7 @@ public sealed partial class MainViewModel : Observable, IDisposable
     {
         _updateLoop?.Cancel();
         _updateLoop = null;
+        DownloadPercent = null;
         if (!AutoUpdate && !manual) { SetCheckingUpdate(false); UpdateStatus = "已关闭"; return; }
         _updateLoop = new();
         _ = CheckUpdates(_updateLoop);
@@ -148,22 +152,36 @@ public sealed partial class MainViewModel : Observable, IDisposable
     private async Task CheckUpdates(CancellationTokenSource loop)
     {
         var token = loop.Token;
+        int failures = 0;
         try
         {
             while (!token.IsCancellationRequested)
             {
                 SetCheckingUpdate(true);
-                UpdateStatus = "正在检查 GitHub 发行版…";
+                UpdateStatus = "正在检查更新…";
                 var downloadUpdate = AutoUpdate;
+                var delay = TimeSpan.FromHours(1);
+                var progress = new Progress<UpdateService.Transfer>(transfer =>
+                {
+                    if (token.IsCancellationRequested || !_checkingUpdate || !ReferenceEquals(_updateLoop, loop)) return;
+                    UpdateStatus = transfer.Status;
+                    DownloadPercent = transfer.Percent;
+                });
                 try
                 {
-                    var result = await Task.Run(() => Updates.Check(token, downloadUpdate), token);
+                    var result = await Task.Run(() => Updates.Check(token, downloadUpdate, progress), token);
                     if (!token.IsCancellationRequested) UpdateStatus = result;
+                    failures = 0;
                 }
-                catch (Exception) when (!token.IsCancellationRequested) { UpdateStatus = "检测更新失败，请稍后重试"; }
-                finally { if (ReferenceEquals(_updateLoop, loop)) SetCheckingUpdate(false); }
+                catch (Exception ex) when (!token.IsCancellationRequested)
+                {
+                    VrDiagnostics.Write("Update check or download: " + ex.Message);
+                    delay = TimeSpan.FromSeconds(++failures switch { 1 => 15, 2 => 60, _ => 300 });
+                    UpdateStatus = downloadUpdate ? $"更新未完成，{delay.TotalSeconds:0} 秒后重试，也可手动检测" : "检测更新失败，可手动重试";
+                }
+                finally { if (ReferenceEquals(_updateLoop, loop)) { DownloadPercent = null; SetCheckingUpdate(false); } }
                 if (!downloadUpdate) break;
-                await Task.Delay(TimeSpan.FromHours(1), token);
+                await Task.Delay(delay, token);
             }
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }

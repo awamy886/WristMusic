@@ -33,7 +33,7 @@ $setup = Join-Path $testDir 'setup.exe'
 [IO.Compression.ZipFile]::CreateFromDirectory((Split-Path $source), $zip)
 [IO.File]::Copy($exe, $setup)
 
-function Run-Worker($asset, $digest, [switch]$installed) {
+function Run-Worker($asset, $digest, [switch]$installed, [switch]$failure) {
     $parentSignal = 'Local\WristTest.' + [guid]::NewGuid()
     $readyName = 'Local\WristTest.' + [guid]::NewGuid()
     $finish = [Threading.EventWaitHandle]::new($false, 'ManualReset', $parentSignal)
@@ -47,14 +47,18 @@ function Run-Worker($asset, $digest, [switch]$installed) {
         if (!$readyEvent.WaitOne(15000)) { throw 'Update handoff failed' }
         [void]$finish.Set()
         if (!$worker.WaitForExit(30000)) { throw 'Update worker timeout' }
-        if (Test-Path (Join-Path $testDir 'pending.json')) { throw 'Pending marker was not consumed' }
+        if ((Test-Path (Join-Path $testDir 'pending.json')) -ne $failure.IsPresent) { throw 'Unexpected pending marker after update' }
     } finally { [void]$finish.Set(); $finish.Dispose(); $readyEvent.Dispose(); $parent.Dispose(); $worker.Dispose() }
 }
-Run-Worker $zip ('0' * 64)
+$badZip = Join-Path $testDir 'damaged.zip'
+[IO.File]::Copy($zip, $badZip)
+Run-Worker $badZip ('0' * 64) -failure
+if (Test-Path $badZip) { throw 'Invalid package retained' }
 $dll = Join-Path $rootDir 'WristMusic.dll'
 if ([IO.File]::ReadAllText($dll) -ne 'old' -or !(Test-Path (Join-Path $testDir 'error.txt'))) { throw 'Invalid checksum accepted' }
 $locked = [IO.File]::Open($dll, 'Open', 'Read', 'None')
-try { Run-Worker $zip (Get-FileHash $zip).Hash } finally { $locked.Dispose() }
+try { Run-Worker $zip (Get-FileHash $zip).Hash -failure } finally { $locked.Dispose() }
+if (!(Test-Path $zip)) { throw 'Valid package lost after install failure' }
 foreach ($name in 'WristMusic.dll','WristMusic.deps.json','coreclr.dll') {
     if ([IO.File]::ReadAllText((Join-Path $rootDir $name)) -ne 'old') { throw 'Rollback failed' }
 }

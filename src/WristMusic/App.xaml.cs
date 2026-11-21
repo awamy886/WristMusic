@@ -78,7 +78,8 @@ public partial class App : Application
             Shutdown(); return;
         }
         var vm = new MainViewModel();
-        if (vm.AutoUpdate && vm.Updates.StartPending(e.Args.Contains("--steamvr-startup"))) { Shutdown(); return; }
+        if (vm.AutoUpdate && !e.Args.Contains("--update-retry-later") &&
+            await vm.Updates.StartPending(e.Args.Contains("--steamvr-startup"))) { Shutdown(); return; }
         vm.StartUpdates();
         var window = new MainWindow(vm); MainWindow = window;
         Views.ReleaseNotesWindow.ShowOnFirstVisit(window, vm);

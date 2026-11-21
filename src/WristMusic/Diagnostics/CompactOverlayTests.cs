@@ -78,7 +78,7 @@ internal static class CompactOverlayTests
         check(vm.Scale < 90, "A media-state refresh does not interrupt dragging a visible VR settings slider");
         await Click("AboutSettingsTab");
         check(vm.VrSettingsTab == "about" && Element("VrAboutPanel").Visibility == Visibility.Visible &&
-            ((TextBlock)Element("VrAboutVersion")).Text == "v4.0.0·星梦屿工作室" &&
+            ((TextBlock)Element("VrAboutVersion")).Text == "v4.2.0·星梦屿工作室" &&
             ((TextBlock)Element("VrAboutAuthor")).Text == "作者:awa星野厨のMY" &&
             ((TextBlock)Element("VrAboutGroup")).Text == "交流群:1049685082" &&
             ((TextBlock)Element("VrAboutFree")).Text == "本程序完全免费·o(*≧▽≦)ツ┏━┓",

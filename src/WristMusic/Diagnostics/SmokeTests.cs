@@ -27,7 +27,7 @@ internal static class SmokeTests
                 "Automatic updates default on for existing settings and preserve explicit opt-out");
             var current = new Version(3, 0, 0);
             Check(UpdateService.Newer("v3.0.1", current) && !UpdateService.Newer("v3.0.0", current) &&
-                !UpdateService.Newer("v2.9.9", current) && !UpdateService.Newer("v4.0.0-beta", current),
+                !UpdateService.Newer("v2.9.9", current) && !UpdateService.Newer("v4.2.0-beta", current),
                 "Only strictly newer stable versions can be applied");
             var portable = UpdateService.FileName("v3.1.0", false);
             var setup = UpdateService.FileName("v3.1.0", true);
@@ -35,6 +35,7 @@ internal static class SmokeTests
             Check(UpdateService.ReadDigest(manifest, setup) == new string('B', 64) &&
                 UpdateService.ReadDigest(manifest, portable) == new string('A', 64), "Select the exact package digest for each distribution");
             CheckPlayerOptions(folder, Check);
+            await UpdateDownloadTests.Run(folder, Check);
             await BackgroundRefreshTests.Run(folder, Check, backgroundSoak);
             await AutoStartTests.Run(folder, Check);
             TimelineTests.Run(Check);
@@ -195,14 +196,14 @@ internal static class SmokeTests
             while (ReleaseNotes.IsUnread(vm.Settings.LastSeenReleaseNotes) && timeout.Elapsed < TimeSpan.FromSeconds(5))
                 await Task.Delay(25);
             var notice = owner.OwnedWindows.OfType<Views.ReleaseNotesWindow>().Single();
-            check(notice.IsVisible && notice.Heading.Text == "v4.0.0更新内容" && store.Load().LastSeenReleaseNotes == "4.0.0",
-                "Opening the desktop renders the 4.0.0 announcement and persists its version for older settings");
+            check(notice.IsVisible && notice.Heading.Text == "v4.2.0更新内容" && store.Load().LastSeenReleaseNotes == "4.2.0",
+                "Opening the desktop renders the 4.2.0 announcement and persists its version for older settings");
             notice.Close();
             var click = System.Windows.Controls.Primitives.ButtonBase.ClickEvent;
             settingsPage.OpenNotesButton.RaiseEvent(new RoutedEventArgs(click));
             settingsPage.OpenNotesButton.RaiseEvent(new RoutedEventArgs(click));
             var reopened = owner.OwnedWindows.OfType<Views.ReleaseNotesWindow>().Single();
-            check(reopened.IsVisible && reopened.Heading.Text == "v4.0.0更新内容",
+            check(reopened.IsVisible && reopened.Heading.Text == "v4.2.0更新内容",
                 "The desktop About button reopens the announcement without duplicating the window");
             reopened.Close();
             using var restarted = new MainViewModel(true, store);

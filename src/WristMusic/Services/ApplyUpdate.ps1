@@ -57,16 +57,20 @@ try {
     try { [void]$signal.Set() } finally { $signal.Dispose() }
     if (!$parent.WaitForExit(30000)) { throw 'Application did not exit' }
     $relaunch = $true
-    [IO.File]::Delete((Join-Path $cache 'pending.json'))
-    if ((Get-FileHash -LiteralPath $Package -Algorithm SHA256).Hash -ne $Hash) { throw 'Invalid package checksum' }
+    if ((Get-FileHash -LiteralPath $Package -Algorithm SHA256).Hash -ne $Hash) {
+        [IO.File]::Delete($Package)
+        throw 'Invalid package checksum'
+    }
     if ($Setup) {
         $arguments = '/CURRENTUSER /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /DIR="' + $Root + '"'
         $installer = Start-Process -FilePath $Package -ArgumentList $arguments -WindowStyle Hidden -Wait -PassThru
         if ($installer.ExitCode -ne 0) { throw "Setup exit code $($installer.ExitCode)" }
     } else { Install-Portable $Package $Root $work }
+    [IO.File]::Delete((Join-Path $cache 'pending.json'))
     [IO.File]::Delete($Package)
     [IO.File]::Delete((Join-Path $cache 'error.txt'))
 } catch {
+    $retryLater = $true
     [IO.File]::WriteAllText((Join-Path $cache 'error.txt'), $_.Exception.Message)
 } finally {
     # work is a unique extraction directory directly beneath this installation's cache.
@@ -80,5 +84,6 @@ if ($relaunch) {
     $start = [Diagnostics.ProcessStartInfo]::new((Join-Path $Root 'WristMusic.exe'))
     $start.WorkingDirectory = $Root
     if ($SteamVr) { $start.Arguments = '--steamvr-startup' }
+    if ($retryLater) { $start.Arguments += ' --update-retry-later' }
     [void][Diagnostics.Process]::Start($start)
 }
