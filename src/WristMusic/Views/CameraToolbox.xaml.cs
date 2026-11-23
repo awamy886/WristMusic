@@ -9,6 +9,7 @@ public partial class CameraToolbox : UserControl
 {
     public bool Wrist { get; set; }
     public ActionCommand OpenTool { get; }
+    public ActionCommand OpenMemory { get; }
     public ActionCommand CloseTool { get; }
     public ActionCommand PickFolder { get; }
     public ActionCommand AcceptFolder { get; }
@@ -24,7 +25,12 @@ public partial class CameraToolbox : UserControl
     public CameraToolbox()
     {
         OpenTool = new(_ => Show(Form));
-        CloseTool = new(_ => Show(Entry));
+        OpenMemory = new(_ =>
+        {
+            if (DataContext is MainViewModel vm) vm.MemoryTool.Refresh(opening: true);
+            Show(MemoryPanel);
+        });
+        CloseTool = new(_ => Show(ToolList));
         PickFolder = new(_ => Pick());
         CancelFolder = new(_ => Show(Form));
         AcceptFolder = new(_ =>
@@ -50,7 +56,7 @@ public partial class CameraToolbox : UserControl
     private void Show(FrameworkElement active)
     {
         ++_load;
-        foreach (var panel in new FrameworkElement[] { Entry, Form, FolderBrowser })
+        foreach (var panel in new FrameworkElement[] { ToolList, Form, FolderBrowser, MemoryPanel })
             panel.Visibility = panel == active ? Visibility.Visible : Visibility.Collapsed;
     }
     private void Pick()

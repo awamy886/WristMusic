@@ -14,6 +14,7 @@ public sealed partial class MainViewModel : Observable, IDisposable
     public PlayerService Players { get; } = new();
     public MediaService Media { get; }
     public CameraRecorder Recorder { get; }
+    public MemoryOptimizer MemoryTool { get; }
     private readonly VolumeService _volumeService = new();
     private readonly SettingsStore _store;
     private readonly IAutoStartClient _autoStart;
@@ -53,10 +54,17 @@ public sealed partial class MainViewModel : Observable, IDisposable
     public MainViewModel(bool demo = false, SettingsStore? store = null, IAutoStartClient? autoStartClient = null)
     {
         Media = new(Players.Apps);
+        OpenGitHubDownloadsCommand = new(_ => RunSafe(() =>
+        {
+            using var browser = Process.Start(new ProcessStartInfo(UpdateService.Repository + "/releases") { UseShellExecute = true });
+            return "已打开 GitHub 下载页。";
+        }));
         CheckUpdatesCommand = new(_ => { if (!_checkingUpdate && !_disposed) RestartUpdates(manual: true); },
-            _ => !_checkingUpdate && !_disposed);
+            _ => !_checkingUpdate && !_installingUpdate && !_disposed);
+        InstallUpdateCommand = new(_ => _ = InstallUpdate(), _ => ShowInstallUpdate && !_installingUpdate && !_disposed);
         _store = store ?? new(); Settings = _store.Load();
         Recorder = new(Settings, Save);
+        MemoryTool = new(Settings, Save);
         _listening = new(Settings.TotalListeningSeconds); _lastListeningSave = Settings.TotalListeningSeconds;
         _autoStart = autoStartClient ?? new SteamVrAutoStartService();
         ThemeService.Apply(Settings.DarkMode);
@@ -72,9 +80,16 @@ public sealed partial class MainViewModel : Observable, IDisposable
         VrSettingsCommand = new(p => VrSettingsOpen = p?.ToString() == "close" ? false : !VrSettingsOpen);
         VrSettingsTabCommand = new(p => VrSettingsTab = p?.ToString() switch { "general" => "general", "tests" => "tests", "about" => "about", "toolbox" => "toolbox", _ => "wrist" });
         HideVrPanelCommand = new(_ => OverlayEnabled = false);
-        OpenVrNotesCommand = new(_ => VrNotesOpen = true);
+        OpenVrNotesCommand = new(_ => ShowVrNotice(guide: false));
         DismissVrNotesCommand = new(_ =>
         {
+            if (_vrGuide)
+            {
+                MarkVrGuideShown();
+                VrNotesOpen = false;
+                ShowUnreadVrNotes();
+                return;
+            }
             VrNotesOpen = false;
             if (!ReleaseNotes.IsUnread(Settings.LastSeenVrReleaseNotes)) return;
             Settings.LastSeenVrReleaseNotes = ReleaseNotes.BuildVersion;
@@ -120,6 +135,46 @@ public sealed partial class MainViewModel : Observable, IDisposable
     private bool _updatesStarted;
     private bool _checkingUpdate;
     public ActionCommand CheckUpdatesCommand { get; }
+    public ActionCommand OpenGitHubDownloadsCommand { get; }
+    public ActionCommand InstallUpdateCommand { get; }
+    private bool _installingUpdate;
+    public bool ShowInstallUpdate => AutoUpdate && Updates.HasReadyPackage;
+    private void RefreshInstallUpdate()
+    {
+        Notify(nameof(ShowInstallUpdate));
+        InstallUpdateCommand.NotifyCanExecuteChanged();
+        CheckUpdatesCommand.NotifyCanExecuteChanged();
+    }
+    private async Task InstallUpdate()
+    {
+        if (!Recorder.CanConfigure) { UpdateStatus = "请先结束相机录制，再重启安装更新。"; return; }
+        _installingUpdate = true;
+        _updateLoop?.Cancel();
+        _updateLoop = null;
+        SetCheckingUpdate(false);
+        DownloadPercent = null;
+        RefreshInstallUpdate();
+        UpdateStatus = "正在准备安装更新…";
+        try
+        {
+            if (await Updates.StartPending(Environment.GetCommandLineArgs().Contains("--steamvr-startup")))
+            {
+                Application.Current.Shutdown();
+                return;
+            }
+            UpdateStatus = Updates.InstallError ?? "找不到已校验的更新包，请重新检测更新。";
+        }
+        finally
+        {
+            _installingUpdate = false;
+            RefreshInstallUpdate();
+            if (!_disposed && AutoUpdate && !Application.Current.Dispatcher.HasShutdownStarted)
+            {
+                _updateLoop = new();
+                _ = CheckUpdates(_updateLoop, delayFirstCheck: true);
+            }
+        }
+    }
     private void SetCheckingUpdate(bool value)
     {
         _checkingUpdate = value;
@@ -138,6 +193,7 @@ public sealed partial class MainViewModel : Observable, IDisposable
             if (Settings.AutoUpdate == value) return;
             Settings.AutoUpdate = value;
             Notify(); Save();
+            RefreshInstallUpdate();
             if (_updatesStarted) RestartUpdates();
         }
     }
@@ -151,12 +207,13 @@ public sealed partial class MainViewModel : Observable, IDisposable
         _updateLoop = new();
         _ = CheckUpdates(_updateLoop);
     }
-    private async Task CheckUpdates(CancellationTokenSource loop)
+    private async Task CheckUpdates(CancellationTokenSource loop, bool delayFirstCheck = false)
     {
         var token = loop.Token;
         int failures = 0;
         try
         {
+            if (delayFirstCheck) await Task.Delay(TimeSpan.FromHours(1), token);
             while (!token.IsCancellationRequested)
             {
                 SetCheckingUpdate(true);
@@ -181,7 +238,7 @@ public sealed partial class MainViewModel : Observable, IDisposable
                     delay = TimeSpan.FromSeconds(++failures switch { 1 => 15, 2 => 60, _ => 300 });
                     UpdateStatus = downloadUpdate ? $"更新未完成，{delay.TotalSeconds:0} 秒后重试，也可手动检测" : "检测更新失败，可手动重试";
                 }
-                finally { if (ReferenceEquals(_updateLoop, loop)) { DownloadPercent = null; SetCheckingUpdate(false); } }
+                finally { if (ReferenceEquals(_updateLoop, loop)) { DownloadPercent = null; SetCheckingUpdate(false); RefreshInstallUpdate(); } }
                 if (!downloadUpdate) break;
                 await Task.Delay(delay, token);
             }
@@ -227,10 +284,28 @@ public sealed partial class MainViewModel : Observable, IDisposable
     public bool VrSettingsOpen { get => _vrSettingsOpen; set { if (Set(ref _vrSettingsOpen, value)) { Notify(nameof(VrPlayerVisible)); Notify(nameof(VrPanelHeight)); } } }
     public bool VrPlayerVisible => !VrSettingsOpen;
     private bool _vrNotesOpen;
+    private bool _vrGuide;
+    public string VrNoticeHeading => _vrGuide ? SmtcGuide.Heading : ReleaseNotes.Heading;
+    public string VrNoticeBody => _vrGuide ? SmtcGuide.Body : ReleaseNotes.Body;
     public bool VrNotesOpen { get => _vrNotesOpen; private set => Set(ref _vrNotesOpen, value); }
+    private void ShowVrNotice(bool guide)
+    {
+        _vrGuide = guide;
+        Notify(nameof(VrNoticeHeading));
+        Notify(nameof(VrNoticeBody));
+        VrNotesOpen = true;
+    }
+    internal void MarkVrGuideShown()
+    {
+        if (!VrNotesOpen || !_vrGuide || Settings.SeenVrSmtcGuide) return;
+        Settings.SeenVrSmtcGuide = true;
+        Save();
+    }
     internal void ShowUnreadVrNotes()
     {
-        if (ReleaseNotes.IsUnread(Settings.LastSeenVrReleaseNotes)) VrNotesOpen = true;
+        if (VrNotesOpen) return;
+        if (!Settings.SeenVrSmtcGuide) ShowVrNotice(guide: true);
+        else if (ReleaseNotes.IsUnread(Settings.LastSeenVrReleaseNotes)) ShowVrNotice(guide: false);
     }
     public bool VrHasProgress => UseDemo || _state is { TimelineKnown: true } s && s.Max > s.Min;
     public double VrPanelHeight => VrSettingsOpen || VrHasProgress ? 500 : 405;
@@ -471,6 +546,7 @@ public sealed partial class MainViewModel : Observable, IDisposable
     }
     private void TickClock()
     {
+        if (Page == "toolbox" || (VrSettingsOpen && VrSettingsTab == "toolbox")) MemoryTool.Refresh();
         var now = DateTimeOffset.UtcNow;
         if (UseDemo && Playing && !_seeking) { Position = Math.Min(Duration, Position + (now - _lastTick).TotalSeconds); if (Position >= Duration) { _demoIndex = (_demoIndex + 1) % DemoTracks.Length; SetDemoTrack(); } }
         else if (!UseDemo) UpdatePosition();
@@ -547,5 +623,5 @@ public sealed partial class MainViewModel : Observable, IDisposable
         foreach (var app in Players.Apps) if (!string.IsNullOrEmpty(app.ExePath)) Settings.AppPaths[app.Id] = app.ExePath;
         try { _store.Save(Settings); _lastListeningSave = Settings.TotalListeningSeconds; } catch (Exception e) { Status = "设置保存失败：" + e.Message; }
     }
-    public void Dispose() { if (_disposed) return; _disposed = true; _usageLifetime?.Cancel(); _updateLoop?.Cancel(); _poll.Dispose(); _clock.Dispose(); _save.Dispose(); Overlay?.Dispose(); Recorder.Dispose(); Media.Dispose(); Save(); }
+    public void Dispose() { if (_disposed) return; _disposed = true; _usageLifetime?.Cancel(); _updateLoop?.Cancel(); _poll.Dispose(); _clock.Dispose(); _save.Dispose(); Overlay?.Dispose(); Recorder.Dispose(); MemoryTool.Dispose(); Media.Dispose(); Save(); }
 }

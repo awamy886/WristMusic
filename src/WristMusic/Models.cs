@@ -81,6 +81,8 @@ public sealed class UserSettings
     public bool AutoUpdate { get; set; } = true;
     public string? LastSeenReleaseNotes { get; set; }
     public string? LastSeenVrReleaseNotes { get; set; }
+    public bool SeenDesktopSmtcGuide { get; set; }
+    public bool SeenVrSmtcGuide { get; set; }
     public string? LastPlayerId { get; set; }
     public bool LaunchSteamVr { get; set; }
     public bool ShowCpuUsage { get; set; } = true;
@@ -94,6 +96,7 @@ public sealed class UserSettings
     public bool RecordVrChatAudio { get; set; } = true;
     public int RecordingHeight { get; set; } = 1080;
     public double TotalListeningSeconds { get; set; }
+    public DateTimeOffset? LastMemoryOptimization { get; set; }
     public void Normalize()
     {
         Scale = Clamp(Scale, 50, 160, 100); Opacity = Clamp(Opacity, 30, 100, 95);

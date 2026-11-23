@@ -171,6 +171,7 @@ public sealed class OverlayService : IDisposable
         if (!visible) { _vm.Recorder.Preview.Watch(this, false); _view.CancelInteraction(); SetPointer(null); _triggerWasDown = false; _requireTriggerRelease = true; }
         if (_visible == visible || _overlay is null || _handle == 0) return;
         Check(visible ? _overlay.ShowOverlay(_handle) : _overlay.HideOverlay(_handle)); _visible = visible;
+        if (visible) _vm.MarkVrGuideShown();
         VrDiagnostics.Write("Panel visibility=" + visible);
     }
 

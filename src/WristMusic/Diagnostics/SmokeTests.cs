@@ -36,6 +36,7 @@ internal static class SmokeTests
                 UpdateService.ReadDigest(manifest, portable) == new string('A', 64), "Select the exact package digest for each distribution");
             CheckPlayerOptions(folder, Check);
             await UpdateDownloadTests.Run(folder, Check);
+            await MemoryOptimizerTests.Run(Check);
             await BackgroundRefreshTests.Run(folder, Check, backgroundSoak);
             await AutoStartTests.Run(folder, Check);
             TimelineTests.Run(Check);
@@ -115,6 +116,7 @@ internal static class SmokeTests
             Check(vm.Page == "toolbox" && vm.PageTitle == "百宝箱" && window.DesktopToolboxPage.Visibility == Visibility.Visible,
                 "Selecting the desktop toolbox navigation item opens its own page");
             var camera = (Views.CameraToolbox)window.DesktopToolboxPage.Child;
+            Render(window, Path.Combine(folder, "desktop-toolbox-entries.png"));
             camera.OpenTool.Execute(null);
             Check(camera.Form.Visibility == Visibility.Visible && camera.Form.DataContext == vm.Recorder,
                 "Desktop toolbox opens the recorder attached to shared settings");
@@ -125,6 +127,8 @@ internal static class SmokeTests
                 vm.Page = page; await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
                 Check(window.DesktopUsageHeader.Visibility == (page == "player" ? Visibility.Visible : Visibility.Collapsed) && window.DesktopUsageHeader.Text == vm.UsageLabel,
                     $"Light desktop meter visibility and content on {page}");
+                Check(window.SmtcGuideButton.Visibility == (page == "apps" ? Visibility.Visible : Visibility.Collapsed),
+                    $"Only the application management header offers SMTC help on {page}");
                 Render(window, Path.Combine(folder, page + ".png"));
             }
             Check(desktopPages.All(page => File.Exists(Path.Combine(folder, page + ".png"))), "All six desktop pages render to PNG");
@@ -204,19 +208,30 @@ internal static class SmokeTests
                 "Minimized startup preserves the unread release announcement");
             owner.WindowState = WindowState.Normal;
             var timeout = Stopwatch.StartNew();
+            while (!vm.Settings.SeenDesktopSmtcGuide && timeout.Elapsed < TimeSpan.FromSeconds(5)) await Task.Delay(25);
+            var guide = owner.OwnedWindows.OfType<Views.ReleaseNotesWindow>().Single();
+            check(guide.Heading.Text == SmtcGuide.Heading && guide.NoticeBody.Text == SmtcGuide.Body &&
+                store.Load().SeenDesktopSmtcGuide && !store.Load().SeenVrSmtcGuide,
+                "First desktop visit shows the SMTC instructions independently from VR");
+            guide.Close();
             while (ReleaseNotes.IsUnread(vm.Settings.LastSeenReleaseNotes) && timeout.Elapsed < TimeSpan.FromSeconds(5))
                 await Task.Delay(25);
             var notice = owner.OwnedWindows.OfType<Views.ReleaseNotesWindow>().Single();
-            check(notice.IsVisible && notice.Heading.Text == "v5.0.0更新内容" && store.Load().LastSeenReleaseNotes == "5.0.0",
-                "Opening the desktop renders the 5.0.0 announcement and persists its version for older settings");
+            check(notice.IsVisible && notice.Heading.Text == "v6.0.0更新内容" && store.Load().LastSeenReleaseNotes == "6.0.0",
+                "Opening the desktop renders the 6.0.0 announcement and persists its version for older settings");
             notice.Close();
             var click = System.Windows.Controls.Primitives.ButtonBase.ClickEvent;
             settingsPage.OpenNotesButton.RaiseEvent(new RoutedEventArgs(click));
             settingsPage.OpenNotesButton.RaiseEvent(new RoutedEventArgs(click));
             var reopened = owner.OwnedWindows.OfType<Views.ReleaseNotesWindow>().Single();
-            check(reopened.IsVisible && reopened.Heading.Text == "v5.0.0更新内容",
+            check(reopened.IsVisible && reopened.Heading.Text == "v6.0.0更新内容",
                 "The desktop About button reopens the announcement without duplicating the window");
             reopened.Close();
+            var help = Views.ReleaseNotesWindow.Open(owner, vm, guide: true);
+            check(help.IsVisible && help.NoticeBody.Text == SmtcGuide.Body &&
+                ReferenceEquals(help, Views.ReleaseNotesWindow.Open(owner, vm, guide: true)),
+                "SMTC instructions can be reopened without duplicating the guide");
+            help.Close();
             using var restarted = new MainViewModel(true, store);
             Views.ReleaseNotesWindow.ShowOnFirstVisit(owner, restarted);
             owner.WindowState = WindowState.Minimized;

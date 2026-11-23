@@ -50,7 +50,7 @@ internal static class UpdateDownloadTests
         catch (EndOfStreamException) { }
         var path = Path.Combine(cache, name);
         var pending = Path.Combine(cache, "pending.json");
-        check(requests == 1 && !File.Exists(path) && !File.Exists(path + ".part") && !File.Exists(pending),
+        check(requests == 1 && !service.HasReadyPackage && !File.Exists(path) && !File.Exists(path + ".part") && !File.Exists(pending),
             "Truncated downloads cannot become pending installations");
         online = false;
         await service.Check(default, true, progress);
@@ -59,7 +59,11 @@ internal static class UpdateDownloadTests
         check(progress.Any(p => p.Percent == 0) && progress.Any(p => p.Percent == 100 && p.Status.Contains("/s")),
             "Transfer reports include percentage and speed through completion");
         var status = await service.Check(default, true);
-        check(requests == 2 && status.Contains("已下载并校验"), "Offline checks preserve a verified pending package");
+        check(requests == 2 && service.HasReadyPackage && status.Contains("已下载并校验"), "Offline checks preserve a verified pending package");
+        File.WriteAllText(Path.Combine(cache, "error.txt"), "旧文件仍被占用");
+        status = await service.Check(default, true);
+        check(service.HasReadyPackage && status.Contains("旧文件仍被占用") && requests == 2,
+            "A failed installation stays available for offline retry and shows its cause");
         File.WriteAllText(path, "corrupted");
         await service.Check(default, true);
         check(requests == 3 && File.ReadAllBytes(path).SequenceEqual(payload), "A corrupt completed file is downloaded again");

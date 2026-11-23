@@ -15,7 +15,7 @@ internal sealed class SystemUsage : IDisposable
     {
         if (!cpu) _previous = null;
         if (!gpu) CloseGpu();
-        return new(cpu ? ReadCpu() : null, memory ? ReadMemory() : null, gpu ? ReadGpu() : null);
+        return new(cpu ? ReadCpu() : null, memory ? ReadPhysicalMemory()?.Load : null, gpu ? ReadGpu() : null);
     }
 
     private double? ReadCpu()
@@ -28,10 +28,15 @@ internal sealed class SystemUsage : IDisposable
         return Math.Clamp(100.0 * (1 - (double)(idle - p.Idle) / (total - p.Total)), 0, 100);
     }
 
-    private static double? ReadMemory()
+    internal readonly record struct PhysicalMemory(ulong Total, ulong Available, uint Load)
+    {
+        public ulong Used => Total - Available;
+    }
+    internal static PhysicalMemory? ReadPhysicalMemory()
     {
         var state = new MemoryStatus { Length = (uint)Marshal.SizeOf<MemoryStatus>() };
-        return GlobalMemoryStatusEx(ref state) ? state.Load : null;
+        return GlobalMemoryStatusEx(ref state) && state.TotalPhysical > 0 && state.AvailablePhysical <= state.TotalPhysical
+            ? new(state.TotalPhysical, state.AvailablePhysical, state.Load) : null;
     }
 
     private double? ReadGpu()

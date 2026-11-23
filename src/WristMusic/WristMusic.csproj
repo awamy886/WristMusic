@@ -10,7 +10,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>WristMusic</AssemblyName>
     <ApplicationIcon>Assets/app.ico</ApplicationIcon>
-    <Version>5.0.0</Version>
+    <Version>6.0.0</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
     <Description>腕间音乐 · SteamVR 桌面音乐控制</Description>
@@ -23,10 +23,17 @@
     <None Update="ThirdParty/openvr_api.dll" TargetPath="openvr_api.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <None Update="ThirdParty/OpenVR-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <Resource Include="Assets/app.ico" />
-    <EmbeddedResource Include="Services/ApplyUpdate.ps1" LogicalName="WristMusic.ApplyUpdate" />
+    <EmbeddedResource Include="ReleaseNotes.$(Version).local.txt" Condition="Exists('ReleaseNotes.$(Version).local.txt')" LogicalName="WristMusic.LocalReleaseNotes" WithCulture="false" />
+    <EmbeddedResource Include="$(BaseIntermediateOutputPath)$(Configuration)\helper\WristUpdater.exe" LogicalName="WristMusic.UpdaterExe" />
     <None Update="Input/*.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Interop.UIAutomationClient" Version="10.19041.0" />
   </ItemGroup>
+  <Target Name="BuildUpdateHelper" BeforeTargets="PrepareForBuild"
+          Inputs="$(MSBuildProjectDirectory)\..\Updater\Program.cs"
+          Outputs="$(BaseIntermediateOutputPath)$(Configuration)\helper\WristUpdater.exe">
+    <MakeDir Directories="$(BaseIntermediateOutputPath)$(Configuration)\helper" />
+    <Exec Command="&quot;$(SystemRoot)\Microsoft.NET\Framework64\v4.0.30319\csc.exe&quot; /nologo /target:winexe /optimize+ /codepage:65001 /reference:System.IO.Compression.dll /out:&quot;$(BaseIntermediateOutputPath)$(Configuration)\helper\WristUpdater.exe&quot; &quot;$(MSBuildProjectDirectory)\..\Updater\Program.cs&quot;" />
+  </Target>
 </Project>

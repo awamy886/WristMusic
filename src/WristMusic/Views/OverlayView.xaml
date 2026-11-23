@@ -51,7 +51,10 @@
             <CheckBox Content="关闭音乐软件时直接终止进程" IsChecked="{Binding ForceClosePlayer}" Margin="0,4,0,14" />
             <CheckBox Content="打开上次使用的播放器" IsChecked="{Binding OpenLastPlayer}" />
             <CheckBox Content="自动更新" IsChecked="{Binding AutoUpdate}" Margin="0,14,0,4" />
-            <Button Content="手动检测更新" Command="{Binding CheckUpdatesCommand}" HorizontalAlignment="Left" Padding="14,6" Margin="0,4,0,6" />
+            <StackPanel Orientation="Horizontal" Margin="0,4,0,6">
+              <Button Content="打开GitHub下载页" Command="{Binding OpenGitHubDownloadsCommand}" Padding="14,6" Margin="0,0,8,0" />
+              <Button Content="手动检测更新" Command="{Binding CheckUpdatesCommand}" Padding="14,6" />
+            </StackPanel>
             <TextBlock Text="{Binding UpdateStatus}" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource Theme.Secondary}" />
             <ProgressBar Height="6" Margin="0,6,0,0" Foreground="{DynamicResource Theme.Accent}" Maximum="100"
                          Value="{Binding DownloadPercent, Mode=OneWay, TargetNullValue=0}" Visibility="{Binding ShowDownloadBar, Converter={StaticResource BoolVisibility}}" />
@@ -80,7 +83,7 @@
         <StackPanel x:Name="VrAboutPanel" Grid.Row="2" Visibility="{Binding VrSettingsTab, Converter={StaticResource VrTabVisibility}, ConverterParameter=about}" Margin="12,20,12,0"><DockPanel Margin="0,0,0,16">
           <Button x:Name="VrOpenNotesButton" Content="本次更新内容" DockPanel.Dock="Right" Padding="18,6" Command="{Binding OpenVrNotesCommand}" />
           <TextBlock Text="腕间音乐" FontSize="28" FontWeight="SemiBold" />
-        </DockPanel><TextBlock x:Name="VrAboutVersion" Text="v5.0.0·星梦屿工作室" Foreground="{DynamicResource Theme.Accent}" FontSize="18" Margin="0,0,0,22" /><TextBlock x:Name="VrAboutAuthor" Text="作者:awa星野厨のMY" Foreground="{DynamicResource Theme.Secondary}" FontSize="17" Margin="0,0,0,16" /><TextBlock x:Name="VrAboutGroup" Text="交流群:1049685082" Foreground="{DynamicResource Theme.Secondary}" FontSize="17" Margin="0,0,0,16" /><TextBlock x:Name="VrAboutFree" Text="本程序完全免费·o(*≧▽≦)ツ┏━┓" Foreground="{DynamicResource Theme.Secondary}" FontSize="16" TextWrapping="Wrap" /></StackPanel><TextBlock Grid.Row="3" Text="设置自动保存 · 用另一只手柄瞄准，按扳机操作" FontSize="11" Foreground="{DynamicResource Theme.Secondary}" VerticalAlignment="Bottom" />
+        </DockPanel><TextBlock x:Name="VrAboutVersion" Text="v6.0.0·星梦屿工作室" Foreground="{DynamicResource Theme.Accent}" FontSize="18" Margin="0,0,0,22" /><TextBlock x:Name="VrAboutAuthor" Text="作者:awa星野厨のMY" Foreground="{DynamicResource Theme.Secondary}" FontSize="17" Margin="0,0,0,16" /><TextBlock x:Name="VrAboutGroup" Text="交流群:1049685082" Foreground="{DynamicResource Theme.Secondary}" FontSize="17" Margin="0,0,0,16" /><TextBlock x:Name="VrAboutFree" Text="本程序完全免费·o(*≧▽≦)ツ┏━┓" Foreground="{DynamicResource Theme.Secondary}" FontSize="16" TextWrapping="Wrap" /></StackPanel><TextBlock Grid.Row="3" Text="设置自动保存 · 用另一只手柄瞄准，按扳机操作" FontSize="11" Foreground="{DynamicResource Theme.Secondary}" VerticalAlignment="Bottom" />
       </Grid></Grid>
     </Border>
     <Grid x:Name="VrNotesDialog" Background="Transparent" Visibility="{Binding VrNotesOpen, Converter={StaticResource BoolVisibility}}">
@@ -88,8 +91,8 @@
       <Border Width="780" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="24,12" CornerRadius="16"
               Background="{DynamicResource Theme.Surface}" BorderBrush="{DynamicResource Theme.Border}" BorderThickness="1">
         <StackPanel>
-          <TextBlock Text="{x:Static local:ReleaseNotes.Heading}" Foreground="{DynamicResource Theme.Text}" FontSize="24" FontWeight="SemiBold" />
-          <TextBlock Text="{x:Static local:ReleaseNotes.Body}" Foreground="{DynamicResource Theme.Text}" TextWrapping="Wrap"
+          <TextBlock Text="{Binding VrNoticeHeading}" Foreground="{DynamicResource Theme.Text}" FontSize="24" FontWeight="SemiBold" />
+          <TextBlock Text="{Binding VrNoticeBody}" Foreground="{DynamicResource Theme.Text}" TextWrapping="Wrap"
                      FontSize="17" LineHeight="22" LineStackingStrategy="BlockLineHeight" Margin="0,6,0,6" />
           <Button x:Name="VrDismissNotesButton" Content="知道了" Command="{Binding DismissVrNotesCommand}" HorizontalAlignment="Right" MinWidth="108" Height="40" />
         </StackPanel>

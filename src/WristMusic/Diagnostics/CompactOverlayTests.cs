@@ -53,6 +53,14 @@ internal static class CompactOverlayTests
         vm.Settings.LastSeenVrReleaseNotes = "3.5.5";
         vm.ShowUnreadVrNotes();
         await Dispatcher.Yield(DispatcherPriority.ApplicationIdle); Layout();
+        check(vm.VrNotesOpen && vm.VrNoticeHeading == SmtcGuide.Heading && vm.VrNoticeBody == SmtcGuide.Body,
+            "First wrist visit opens the SMTC guide before release notes");
+        vm.MarkVrGuideShown();
+        check(store.Load().SeenVrSmtcGuide && !store.Load().SeenDesktopSmtcGuide,
+            "A visible wrist guide persists its own one-time receipt");
+        await Click("VrDismissNotesButton");
+        check(vm.VrNotesOpen && vm.VrNoticeHeading == ReleaseNotes.Heading,
+            "Dismissing the guide reveals the unread wrist release notes");
         check(Element("VrNotesDialog").Visibility == Visibility.Visible && Top("VrDismissNotesButton") + Element("VrDismissNotesButton").ActualHeight <= view.ActualHeight,
             "First VR visit shows the announcement even after desktop viewing and fits the compact texture");
         await Click("SettingsButton");
@@ -82,6 +90,14 @@ internal static class CompactOverlayTests
             Element("VrAboutPanel").Visibility == Visibility.Collapsed && !vm.VrNotesOpen,
             "The fifth VR settings tab opens the toolbox without showing the announcement");
         var camera = (CameraToolbox)((Grid)Element("VrToolboxPanel")).Children[0];
+        Render(view, Path.Combine(folder, "overlay-toolbox.png"));
+        await ClickTarget(camera.MemoryEntry);
+        await ClickTarget(camera.DeepMode);
+        check(camera.MemoryPanel.Visibility == Visibility.Visible && camera.MemoryPanel.DataContext == vm.MemoryTool &&
+            vm.MemoryTool.Deep && vm.MemoryTool.Total != "— G" && camera.OptimizeButton.TranslatePoint(new(0, camera.OptimizeButton.ActualHeight), view).Y < view.ActualHeight,
+            "The wrist ray opens memory optimization, reads physical memory and selects deep mode");
+        Render(view, Path.Combine(folder, "overlay-memory-optimizer.png"));
+        await ClickTarget(camera.MemoryBack);
         await ClickTarget(camera.Entry);
         check(camera.Form.Visibility == Visibility.Visible && camera.Form.DataContext == vm.Recorder &&
             vm.Settings.RecordingFps == 60 && vm.Settings.RecordingHeight == 1080, "Wrist ray opens the camera with 1080p60 defaults");
@@ -100,7 +116,7 @@ internal static class CompactOverlayTests
         check(camera.FolderBrowser.Visibility == Visibility.Visible, "Wrist folder picker opens inside the overlay");
         await Click("AboutSettingsTab");
         check(vm.VrSettingsTab == "about" && Element("VrAboutPanel").Visibility == Visibility.Visible &&
-            ((TextBlock)Element("VrAboutVersion")).Text == "v5.0.0·星梦屿工作室" &&
+            ((TextBlock)Element("VrAboutVersion")).Text == "v6.0.0·星梦屿工作室" &&
             ((TextBlock)Element("VrAboutAuthor")).Text == "作者:awa星野厨のMY" &&
             ((TextBlock)Element("VrAboutGroup")).Text == "交流群:1049685082" &&
             ((TextBlock)Element("VrAboutFree")).Text == "本程序完全免费·o(*≧▽≦)ツ┏━┓",

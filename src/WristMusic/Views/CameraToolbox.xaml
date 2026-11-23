@@ -2,12 +2,64 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Grid VerticalAlignment="Top">
-    <Button x:Name="Entry" Command="{Binding OpenTool, ElementName=Toolbox}" HorizontalAlignment="Left" Padding="18,12">
-      <StackPanel Orientation="Horizontal">
-        <TextBlock Text="&#xE714;" FontFamily="Segoe MDL2 Assets" FontSize="20" VerticalAlignment="Center" Margin="0,0,12,0" />
-        <StackPanel><TextBlock Text="VRChat 相机录制" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="Spout2 · MP4" Foreground="{DynamicResource Theme.Secondary}" FontSize="12" Margin="0,3,0,0" /></StackPanel>
-      </StackPanel>
-    </Button>
+    <WrapPanel x:Name="ToolList">
+      <Button x:Name="Entry" Command="{Binding OpenTool, ElementName=Toolbox}" HorizontalAlignment="Left" Padding="18,12" Margin="0,0,16,0">
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="&#xE714;" FontFamily="Segoe MDL2 Assets" FontSize="20" VerticalAlignment="Center" Margin="0,0,12,0" />
+          <StackPanel><TextBlock Text="VRChat 相机录制" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="Spout2 · MP4" Foreground="{DynamicResource Theme.Secondary}" FontSize="12" Margin="0,3,0,0" /></StackPanel>
+        </StackPanel>
+      </Button>
+      <Button x:Name="MemoryEntry" Command="{Binding OpenMemory, ElementName=Toolbox}" Padding="18,12"
+              MinWidth="{Binding ActualWidth, ElementName=Entry}" AutomationProperties.Name="内存优化">
+        <StackPanel Orientation="Horizontal">
+          <Path Width="20" Height="16" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,12,0"
+                Stroke="{Binding Foreground, ElementName=MemoryEntry}" StrokeThickness="1.4" StrokeLineJoin="Round"
+                Data="M1,2 H23 V13 H1 Z M4,5 H8 V10 H4 Z M10,5 H14 V10 H10 Z M16,5 H20 V10 H16 Z M4,13 V16 M8,13 V16 M12,13 V16 M16,13 V16 M20,13 V16" />
+          <StackPanel>
+            <TextBlock Text="内存优化" FontSize="16" FontWeight="SemiBold" />
+            <TextBlock Text="标准优化 · 深度优化" Foreground="{DynamicResource Theme.Secondary}" FontSize="12" Margin="0,3,0,0" />
+          </StackPanel>
+        </StackPanel>
+      </Button>
+    </WrapPanel>
+    <StackPanel x:Name="MemoryPanel" Visibility="Collapsed" DataContext="{Binding MemoryTool}">
+      <DockPanel Margin="0,0,0,10">
+        <Button x:Name="MemoryBack" DockPanel.Dock="Right" Content="返回百宝箱" Command="{Binding CloseTool, ElementName=Toolbox}" Padding="12,5" />
+        <TextBlock VerticalAlignment="Center" TextWrapping="Wrap">
+          <Run Text="内存优化" FontSize="21" FontWeight="SemiBold" />
+          <Run Text="(优化过程中会有略微卡顿)" FontSize="14" Foreground="{DynamicResource Theme.Secondary}" />
+        </TextBlock>
+      </DockPanel>
+      <UniformGrid Columns="3" Margin="0,0,0,10">
+        <StackPanel><TextBlock Text="总物理内存" Foreground="{DynamicResource Theme.Secondary}" /><TextBlock Text="{Binding Total}" FontSize="21" FontWeight="SemiBold" /></StackPanel>
+        <StackPanel><TextBlock Text="当前已用内存" Foreground="{DynamicResource Theme.Secondary}" /><TextBlock Text="{Binding Used}" FontSize="21" FontWeight="SemiBold" /></StackPanel>
+        <StackPanel><TextBlock Text="可用内存" Foreground="{DynamicResource Theme.Secondary}" /><TextBlock Text="{Binding Available}" FontSize="21" FontWeight="SemiBold" /></StackPanel>
+      </UniformGrid>
+      <UniformGrid Columns="2" Margin="0,0,0,8">
+        <Button x:Name="StandardMode" Command="{Binding SelectMode}" CommandParameter="standard" HorizontalContentAlignment="Left" Padding="12,5" Margin="0,0,4,0">
+          <Button.Style><Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}"><Style.Triggers><DataTrigger Binding="{Binding Deep}" Value="False"><Setter Property="BorderBrush" Value="{DynamicResource Theme.Accent}" /><Setter Property="BorderThickness" Value="2" /></DataTrigger></Style.Triggers></Style></Button.Style>
+          <StackPanel><TextBlock Text="标准优化" FontWeight="SemiBold" /><TextBlock Text="用户进程 · 工作集超过 200 MB" FontSize="12" Foreground="{DynamicResource Theme.Secondary}" /></StackPanel>
+        </Button>
+        <Button x:Name="DeepMode" Command="{Binding SelectMode}" CommandParameter="deep" HorizontalContentAlignment="Left" Padding="12,5" Margin="4,0,0,0">
+          <Button.Style><Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}"><Style.Triggers><DataTrigger Binding="{Binding Deep}" Value="True"><Setter Property="BorderBrush" Value="{DynamicResource Theme.Accent}" /><Setter Property="BorderThickness" Value="2" /></DataTrigger></Style.Triggers></Style></Button.Style>
+          <StackPanel><TextBlock Text="深度优化" FontWeight="SemiBold" /><TextBlock Text="用户进程 · 工作集 30 MB 及以上" FontSize="12" Foreground="{DynamicResource Theme.Secondary}" /></StackPanel>
+        </Button>
+      </UniformGrid>
+      <DockPanel Margin="0,0,0,6">
+        <Button x:Name="OptimizeButton" Content="点击优化" Command="{Binding Optimize}" Padding="16,6" DockPanel.Dock="Left" Margin="0,0,12,0" />
+        <StackPanel VerticalAlignment="Center">
+          <DockPanel><TextBlock Text="{Binding Cooldown}" DockPanel.Dock="Right" Foreground="{DynamicResource Theme.Secondary}" /><TextBlock Text="{Binding Status}" FontWeight="SemiBold" /></DockPanel>
+          <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress, Mode=OneWay}" Height="6">
+            <ProgressBar.Template><ControlTemplate TargetType="ProgressBar"><Grid x:Name="PART_Track">
+              <Border Background="{DynamicResource Theme.SurfaceSoft}" BorderBrush="{DynamicResource Theme.Border}" BorderThickness="1" CornerRadius="3" />
+              <Border x:Name="PART_Indicator" HorizontalAlignment="Left" Background="{DynamicResource Theme.Accent}" CornerRadius="3" />
+            </Grid></ControlTemplate></ProgressBar.Template>
+          </ProgressBar>
+        </StackPanel>
+      </DockPanel>
+      <TextBlock Text="{Binding Result}" TextWrapping="Wrap" LineHeight="20" ToolTip="释放量按系统可用物理内存的净增量估算；优化前后显示已用物理内存。" />
+      <TextBlock Text="{Binding Hint}" Foreground="{DynamicResource Theme.Accent}" FontWeight="SemiBold" />
+    </StackPanel>
     <StackPanel x:Name="Form" Visibility="Collapsed" DataContext="{Binding Recorder}">
       <DockPanel Margin="0,0,0,12">
         <Button Content="返回百宝箱" DockPanel.Dock="Right" Command="{Binding CloseTool, ElementName=Toolbox}" Padding="12,5" />

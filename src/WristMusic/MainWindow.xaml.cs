@@ -29,6 +29,7 @@ public partial class MainWindow : Window
     private void MinimizeClick(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
     private void MaximizeClick(object sender, RoutedEventArgs e) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
     private void CloseClick(object sender, RoutedEventArgs e) => Close();
+    private void ShowSmtcGuide(object sender, RoutedEventArgs e) => Views.ReleaseNotesWindow.Open(this, _vm, guide: true);
     private void UpdateHotkeys()
     {
         if (_handle == IntPtr.Zero) return;

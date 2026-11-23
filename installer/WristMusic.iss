@@ -1,5 +1,5 @@
 #ifndef AppVersion
-  #define AppVersion "5.0.0"
+  #define AppVersion "6.0.0"
 #endif
 #ifndef PayloadDir
   #define PayloadDir SourcePath + "..\artifacts\WristMusic-win-x64"

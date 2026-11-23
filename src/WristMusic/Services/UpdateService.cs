@@ -92,9 +92,9 @@ internal sealed class UpdateService
 
     private string ReadyStatus(string tag, bool automatic)
     {
-        var next = !automatic ? "开启自动更新后可在下次启动时安装" :
-            File.Exists(Path.Combine(_cache, "error.txt")) ? "上次安装失败，下次以普通用户启动时重试" :
-            "下次以普通用户启动时更新";
+        var next = !automatic ? "开启自动更新后可安装" :
+            InstallError is { Length: > 0 } error ? $"上次安装未完成：{error}" :
+            "可立即重启安装，也可下次启动时更新";
         return $"{tag} 已下载并校验，{next}";
     }
 
@@ -104,6 +104,7 @@ internal sealed class UpdateService
         try
         {
             var ready = await FindReady(token).ConfigureAwait(false);
+            HasReadyPackage = ready != null;
             string tag;
             try { tag = await GetLatestTag(token).ConfigureAwait(false); }
             catch (Exception ex) when (!token.IsCancellationRequested && ex is HttpRequestException or IOException or OperationCanceledException or InvalidDataException)
@@ -151,6 +152,8 @@ internal sealed class UpdateService
             }
             SaveEntry(Pending, entry);
             File.Delete(Candidate);
+            File.Delete(ErrorFile);
+            HasReadyPackage = true;
             return ReadyStatus(tag, downloadUpdate);
         }
         finally { _gate.Release(); }
@@ -212,35 +215,65 @@ internal sealed class UpdateService
         mutex.Dispose(); return true;
     }
 
+    internal bool HasReadyPackage { get; private set; }
+    private string ErrorFile => Path.Combine(_cache, "error.txt");
+    internal string? InstallError
+    {
+        get
+        {
+            try { return File.Exists(ErrorFile) ? File.ReadAllText(ErrorFile).Trim() : null; }
+            catch (IOException) { return null; }
+            catch (UnauthorizedAccessException) { return null; }
+        }
+    }
+
     internal async Task<bool> StartPending(bool steamVr)
     {
-        if (!string.Equals(Path.GetFileName(Environment.ProcessPath), "WristMusic.exe", StringComparison.OrdinalIgnoreCase)) return false;
+        await _gate.WaitAsync();
         try
         {
             var pending = await FindReady(CancellationToken.None);
+            HasReadyPackage = pending != null;
             if (pending is null) return false;
-            // The cache is per-user. Never execute a cached helper at elevated integrity.
             using var identity = WindowsIdentity.GetCurrent();
-            if (new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator)) return false;
-            var package = Path.Combine(_cache, FileName(pending.Tag, pending.Setup));
-            if (!File.Exists(package)) { File.Delete(Pending); return false; }
-            var script = Path.Combine(_cache, "apply.ps1");
-            using (var resource = typeof(UpdateService).Assembly.GetManifestResourceStream("WristMusic.ApplyUpdate")!)
-            using (var file = File.Create(script)) resource.CopyTo(file);
+            if (new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
+                throw new InvalidOperationException("请退出腕间音乐，使用普通用户权限重新打开后安装更新");
+            if (!string.Equals(Path.GetFileName(Environment.ProcessPath), "WristMusic.exe", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("请使用 WristMusic.exe 启动更新");
+
+            // A separate copy uses the Windows inbox CLR. The old runtime and the
+            // camera worker can exit before any files in the installation are replaced.
+            var helper = Path.Combine(_cache, "WristUpdater.exe");
+            using (var resource = typeof(UpdateService).Assembly.GetManifestResourceStream("WristMusic.UpdaterExe")!)
+            using (var file = File.Create(helper)) resource.CopyTo(file);
             var signal = @"Local\WristMusic.Update." + Guid.NewGuid().ToString("N");
             using var ready = new EventWaitHandle(false, EventResetMode.ManualReset, signal);
-            var shell = Path.Combine(Environment.SystemDirectory, @"WindowsPowerShell\v1.0\powershell.exe");
-            var start = new ProcessStartInfo(shell) { UseShellExecute = false, CreateNoWindow = true };
-            foreach (var arg in new[] { "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "RemoteSigned", "-File", script,
-                "-Root", _root, "-Package", package, "-Hash", pending.Digest, "-ParentId", Environment.ProcessId.ToString(),
-                "-Ready", signal }) start.ArgumentList.Add(arg);
-            if (pending.Setup) start.ArgumentList.Add("-Setup");
-            if (steamVr) start.ArgumentList.Add("-SteamVr");
-            using var worker = Process.Start(start);
-            if (worker is not null && ready.WaitOne(TimeSpan.FromSeconds(10))) return true;
-            VrDiagnostics.Write("Update helper did not start.");
+            using var proceed = new EventWaitHandle(false, EventResetMode.ManualReset, signal + ".proceed");
+            var start = new ProcessStartInfo(helper)
+                { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = _cache };
+            foreach (var arg in new[] { _root, PackagePath(pending), pending.Digest, Environment.ProcessId.ToString(),
+                signal, pending.Tag[1..], pending.Setup ? "setup" : "portable", steamVr ? "steamvr" : "desktop" })
+                start.ArgumentList.Add(arg);
+            File.Delete(ErrorFile);
+            using var worker = Process.Start(start) ?? throw new IOException("无法启动更新程序");
+            await Task.Run(() =>
+            {
+                var clock = Stopwatch.StartNew();
+                while (!ready.WaitOne(100))
+                {
+                    if (worker.HasExited) throw new IOException(InstallError ?? $"更新程序已退出（{worker.ExitCode}）");
+                    if (clock.Elapsed >= TimeSpan.FromSeconds(45)) throw new TimeoutException("更新程序启动超时，请重试");
+                }
+            });
+            proceed.Set();
+            return true;
         }
-        catch (Exception ex) { VrDiagnostics.Write("Update startup: " + ex.Message); }
-        return false;
+        catch (Exception ex)
+        {
+            VrDiagnostics.Write("Update startup: " + ex.Message);
+            try { Directory.CreateDirectory(_cache); File.WriteAllText(ErrorFile, ex.Message); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+            return false;
+        }
+        finally { _gate.Release(); }
     }
 }

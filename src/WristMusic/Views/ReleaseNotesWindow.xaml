@@ -7,7 +7,7 @@
         Background="{DynamicResource Theme.Surface}" Foreground="{DynamicResource Theme.Text}"
         FontFamily="Microsoft YaHei UI">
   <StackPanel Margin="28,24">
-    <TextBlock x:Name="Heading" Text="{x:Static local:ReleaseNotes.Heading}" FontSize="23" FontWeight="SemiBold" Margin="0,0,0,18" />
+    <TextBlock x:Name="Heading" Text="{x:Static local:ReleaseNotes.Heading}" TextWrapping="Wrap" FontSize="23" FontWeight="SemiBold" Margin="0,0,0,18" />
     <Border Padding="16,10" CornerRadius="10" Background="{DynamicResource Theme.SurfaceSoft}">
       <StackPanel>
         <StackPanel.Resources>
@@ -18,7 +18,7 @@
             <Setter Property="Margin" Value="0,6" />
           </Style>
         </StackPanel.Resources>
-        <TextBlock Text="{x:Static local:ReleaseNotes.Body}" LineHeight="29" />
+        <TextBlock x:Name="NoticeBody" Text="{x:Static local:ReleaseNotes.Body}" LineHeight="29" />
       </StackPanel>
     </Border>
     <Button Content="知道了" Click="Dismiss" IsDefault="True" HorizontalAlignment="Right"
