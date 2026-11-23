@@ -24,13 +24,14 @@ internal static class CompactOverlayTests
         }
         FrameworkElement Element(string name) => (FrameworkElement)view.FindName(name);
         double Top(string name) => Element(name).TranslatePoint(new(0, 0), view).Y;
-        async Task Click(string name)
+        async Task ClickTarget(FrameworkElement target)
         {
-            Layout(); var target = Element(name);
+            Layout();
             var point = target.TranslatePoint(new(target.ActualWidth / 2, target.ActualHeight / 2), view);
             view.Interact(point, true, true); view.Interact(point, false, false);
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle); Layout(); renderer.EnsureSurface();
         }
+        Task Click(string name) => ClickTarget(Element(name));
         Layout();
         check(vm.VrPanelHeight == 405 && renderer.TextureSize.Height == 405 && Element("TimelineRegion").Visibility == Visibility.Collapsed,
             "No media timeline starts with a compact panel and an actual 405-pixel texture");
@@ -76,9 +77,30 @@ internal static class CompactOverlayTests
         var end = scale.TranslatePoint(new(scale.ActualWidth * .2, 14), view);
         view.Interact(end, false, true); view.Interact(end, false, false);
         check(vm.Scale < 90, "A media-state refresh does not interrupt dragging a visible VR settings slider");
+        await Click("ToolboxSettingsTab");
+        check(vm.VrSettingsTab == "toolbox" && Element("VrToolboxPanel").Visibility == Visibility.Visible &&
+            Element("VrAboutPanel").Visibility == Visibility.Collapsed && !vm.VrNotesOpen,
+            "The fifth VR settings tab opens the toolbox without showing the announcement");
+        var camera = (CameraToolbox)((Grid)Element("VrToolboxPanel")).Children[0];
+        await ClickTarget(camera.Entry);
+        check(camera.Form.Visibility == Visibility.Visible && camera.Form.DataContext == vm.Recorder &&
+            vm.Settings.RecordingFps == 60 && vm.Settings.RecordingHeight == 1080, "Wrist ray opens the camera with 1080p60 defaults");
+        await ClickTarget(camera.RateButton);
+        check(!vm.Recorder.RecordDesktopAudio && !vm.Recorder.RecordMicrophoneAudio && vm.Recorder.RecordVrChatAudio,
+            "Camera defaults to game audio only");
+        await ClickTarget(camera.DesktopAudioSwitch);
+        await ClickTarget(camera.MicAudioSwitch);
+        await ClickTarget(camera.GameAudioSwitch);
+        check(store.Load() is { RecordDesktopAudio: true, RecordMicrophoneAudio: true, RecordVrChatAudio: false },
+            "All three wrist audio switches accept independent ray clicks and persist the selection");
+        await ClickTarget(camera.SizeButton);
+        check(store.Load() is { RecordingFps: 120, RecordingHeight: 1440 }, "Wrist camera settings persist");
+        Render(view, Path.Combine(folder, "overlay-camera-recorder.png"));
+        await ClickTarget(camera.FolderButton);
+        check(camera.FolderBrowser.Visibility == Visibility.Visible, "Wrist folder picker opens inside the overlay");
         await Click("AboutSettingsTab");
         check(vm.VrSettingsTab == "about" && Element("VrAboutPanel").Visibility == Visibility.Visible &&
-            ((TextBlock)Element("VrAboutVersion")).Text == "v4.2.0·星梦屿工作室" &&
+            ((TextBlock)Element("VrAboutVersion")).Text == "v5.0.0·星梦屿工作室" &&
             ((TextBlock)Element("VrAboutAuthor")).Text == "作者:awa星野厨のMY" &&
             ((TextBlock)Element("VrAboutGroup")).Text == "交流群:1049685082" &&
             ((TextBlock)Element("VrAboutFree")).Text == "本程序完全免费·o(*≧▽≦)ツ┏━┓",
@@ -86,7 +108,7 @@ internal static class CompactOverlayTests
         Render(view, Path.Combine(folder, "overlay-about-dark.png"));
         await Click("VrOpenNotesButton");
         check(vm.VrNotesOpen && Element("VrNotesDialog").Visibility == Visibility.Visible,
-            "The VR settings button next to About reopens the same announcement by ray");
+            "The release notes button inside About reopens the announcement by ray");
         await Click("VrDismissNotesButton");
         check(vm.VrSettingsOpen && vm.VrSettingsTab == "about" && !vm.VrNotesOpen,
             "Dismissing a reopened notice returns to the previous VR settings tab");

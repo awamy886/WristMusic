@@ -45,6 +45,19 @@ internal static class CursorOverlayTests
         check(frame.Pixels.AsSpan().SequenceEqual(original) && texture.ReadBack().AsSpan().SequenceEqual(original),
             "Losing the ray hit restores all old cursor pixels without a ghost trail");
         check(frame.SetCursor(null, true).Width == 0, "A repeatedly hidden cursor requires no further texture update");
+        var previewRect = new Int32Rect(440, 130, CameraPreview.Width, CameraPreview.Height);
+        var cameraPixels = new byte[CameraPreview.Size];
+        Array.Fill(cameraPixels, (byte)25);
+        frame.SetCursor(new(550, 200), true);
+        frame.SetPreview(cameraPixels, previewRect);
+        texture.UploadRegion(frame.Pixels, 820, 405, previewRect);
+        var beneath = (200 * 820 + 550) * 4;
+        check(frame.Pixels[beneath] != 25 && texture.ReadBack().AsSpan().SequenceEqual(frame.Pixels),
+            "A preview upload preserves the cursor in the same VR texture");
+        frame.SetCursor(null, true);
+        check(frame.Pixels[beneath] == 25 && frame.Pixels[beneath + 3] == 255,
+            "Moving the cursor off the preview restores the latest opaque video pixels");
+        frame.SetPanel(original, 820, 405);
         frame.SetCursor(new(410, 200), false); var integerFrame = frame.Pixels.ToArray();
         frame.SetCursor(new(410.25, 200), false);
         check(!frame.Pixels.AsSpan().SequenceEqual(integerFrame), "Sub-pixel sampling responds to movement smaller than one panel pixel");

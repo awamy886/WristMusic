@@ -109,14 +109,25 @@ internal static class SmokeTests
                 "Accessibility time is displayed without claiming unsupported native seeking");
             vm.ApplyMediaState(null);
             Check(vm.PositionLabel == "--:--" && vm.DurationLabel == "--:--", "Disconnect clears the old track timeline and labels");
-            foreach (var page in new[] { "player", "apps", "wrist", "hotkeys", "settings" })
+            string[] desktopPages = ["player", "apps", "wrist", "hotkeys", "toolbox", "settings"];
+            window.ToolboxNav.SetCurrentValue(System.Windows.Controls.Primitives.ToggleButton.IsCheckedProperty, true);
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            Check(vm.Page == "toolbox" && vm.PageTitle == "百宝箱" && window.DesktopToolboxPage.Visibility == Visibility.Visible,
+                "Selecting the desktop toolbox navigation item opens its own page");
+            var camera = (Views.CameraToolbox)window.DesktopToolboxPage.Child;
+            camera.OpenTool.Execute(null);
+            Check(camera.Form.Visibility == Visibility.Visible && camera.Form.DataContext == vm.Recorder,
+                "Desktop toolbox opens the recorder attached to shared settings");
+            Check(Path.GetFileName(CameraRecorder.OutputPath(folder, new DateTime(2026, 11, 22, 13, 5, 9))) ==
+                "腕间音乐-vrchat录制-2026年11月22日13时05分09秒.mp4", "Camera filenames contain the local date and time through seconds");
+            foreach (var page in desktopPages)
             {
                 vm.Page = page; await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
                 Check(window.DesktopUsageHeader.Visibility == (page == "player" ? Visibility.Visible : Visibility.Collapsed) && window.DesktopUsageHeader.Text == vm.UsageLabel,
                     $"Light desktop meter visibility and content on {page}");
                 Render(window, Path.Combine(folder, page + ".png"));
             }
-            Check(File.Exists(Path.Combine(folder, "wrist.png")), "All five desktop pages render to PNG");
+            Check(desktopPages.All(page => File.Exists(Path.Combine(folder, page + ".png"))), "All six desktop pages render to PNG");
             overlay.UpdateLayout();
             overlay.Measure(new(820, vm.VrPanelHeight)); overlay.Arrange(new(0, 0, 820, vm.VrPanelHeight)); overlay.UpdateLayout();
             RenderVisual(overlay, 820, (int)vm.VrPanelHeight, Path.Combine(folder, "overlay.png"));
@@ -130,7 +141,7 @@ internal static class SmokeTests
                 "Offscreen VR panel follows a theme change immediately without a Window ancestor");
             vm.Save();
             Check(new SettingsStore(Path.Combine(folder, "demo-settings.json")).Load().DarkMode, "Dark mode selection persists to the settings file");
-            foreach (var page in new[] { "player", "apps", "wrist", "hotkeys", "settings" })
+            foreach (var page in desktopPages)
             {
                 vm.Page = page; await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
                 Check(window.DesktopUsageHeader.Visibility == (page == "player" ? Visibility.Visible : Visibility.Collapsed) && window.DesktopUsageHeader.Text == vm.UsageLabel,
@@ -196,14 +207,14 @@ internal static class SmokeTests
             while (ReleaseNotes.IsUnread(vm.Settings.LastSeenReleaseNotes) && timeout.Elapsed < TimeSpan.FromSeconds(5))
                 await Task.Delay(25);
             var notice = owner.OwnedWindows.OfType<Views.ReleaseNotesWindow>().Single();
-            check(notice.IsVisible && notice.Heading.Text == "v4.2.0更新内容" && store.Load().LastSeenReleaseNotes == "4.2.0",
-                "Opening the desktop renders the 4.2.0 announcement and persists its version for older settings");
+            check(notice.IsVisible && notice.Heading.Text == "v5.0.0更新内容" && store.Load().LastSeenReleaseNotes == "5.0.0",
+                "Opening the desktop renders the 5.0.0 announcement and persists its version for older settings");
             notice.Close();
             var click = System.Windows.Controls.Primitives.ButtonBase.ClickEvent;
             settingsPage.OpenNotesButton.RaiseEvent(new RoutedEventArgs(click));
             settingsPage.OpenNotesButton.RaiseEvent(new RoutedEventArgs(click));
             var reopened = owner.OwnedWindows.OfType<Views.ReleaseNotesWindow>().Single();
-            check(reopened.IsVisible && reopened.Heading.Text == "v4.2.0更新内容",
+            check(reopened.IsVisible && reopened.Heading.Text == "v5.0.0更新内容",
                 "The desktop About button reopens the announcement without duplicating the window");
             reopened.Close();
             using var restarted = new MainViewModel(true, store);

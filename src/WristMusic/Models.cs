@@ -87,6 +87,12 @@ public sealed class UserSettings
     public bool ShowMemoryUsage { get; set; } = true;
     public bool ShowGpuUsage { get; set; } = true;
     public bool ShowListeningTime { get; set; }
+    public string? RecordingFolder { get; set; }
+    public int RecordingFps { get; set; } = 60;
+    public bool RecordDesktopAudio { get; set; }
+    public bool RecordMicrophoneAudio { get; set; }
+    public bool RecordVrChatAudio { get; set; } = true;
+    public int RecordingHeight { get; set; } = 1080;
     public double TotalListeningSeconds { get; set; }
     public void Normalize()
     {
@@ -94,6 +100,9 @@ public sealed class UserSettings
         OffsetX = Clamp(OffsetX, -30, 30, 0); OffsetY = Clamp(OffsetY, -30, 30, 8);
         OffsetZ = Clamp(OffsetZ, -30, 30, 6); Tilt = Clamp(Tilt, -180, 180, -75);
         AppPaths ??= []; SelectedApp ??= "auto";
+        if (RecordingFps is not (30 or 60 or 120)) RecordingFps = 60;
+        if (RecordingHeight is not (720 or 1080 or 1440)) RecordingHeight = 1080;
+        if (RecordingFolder != null && !Path.IsPathFullyQualified(RecordingFolder)) RecordingFolder = null;
         TotalListeningSeconds = Clamp(TotalListeningSeconds, 0, 36500d * 86400, 0);
     }
     private static double Clamp(double value, double min, double max, double fallback) => double.IsFinite(value) ? Math.Clamp(value, min, max) : fallback;

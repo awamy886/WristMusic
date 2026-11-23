@@ -48,3 +48,7 @@ The opt-in bridge setup downloads unmodified BetterNCM 1.3.4 (Windows x64 loader
 ## Artwork
 
 The waveform application icon, the vector moon-and-water placeholder, and the light-theme record placeholder are original project assets. Internal test track names are sample data; no song recordings or music-client logos are distributed.
+
+## Spout2
+
+WristCamera uses the SpoutDX receiver from Spout2, revision 2bd42d21cd1825b2fd61224d914c555e59545ab5, under the BSD 2-Clause license. Its license accompanies the binary in ThirdParty/Spout2-LICENSE.txt. Source: https://github.com/leadedge/Spout2

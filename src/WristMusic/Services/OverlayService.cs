@@ -33,6 +33,10 @@ public sealed class OverlayService : IDisposable
     private readonly CursorFrameComposer _frame = new();
     private bool _pointerVisible;
     private double _lastInteraction = double.NegativeInfinity;
+    private bool _previewLayout, _previewHasPixels;
+    private long _previewRevision;
+    private bool PreviewWanted => _vm.VrSettingsOpen && !_vm.VrNotesOpen && _vm.VrSettingsTab == "toolbox" &&
+        _view.WristCameraTool.Form.Visibility == Visibility.Visible;
     private bool _manualOpen, _forceOpenPending;
     private int _observedOpenRequest;
     private bool _lastRaiseSetting;
@@ -149,13 +153,22 @@ public sealed class OverlayService : IDisposable
             // Process the current input before painting its result. Cursor movement has no panel-frame gate.
             resized = EnsureSurface();
             var interval = now - _lastInteraction < .5 ? 1000d / 30 : 125;
-            if (resized || _renderClock.Elapsed.TotalMilliseconds >= interval) { Render(); _renderClock.Restart(); }
+            var preview = _vm.Recorder.Preview;
+            var wanted = PreviewWanted;
+            preview.Watch(this, wanted);
+            if (resized || wanted != _previewLayout || wanted && (preview.Pixels != null) != _previewHasPixels ||
+                _renderClock.Elapsed.TotalMilliseconds >= interval) { Render(); _renderClock.Restart(); }
+            else if (wanted && preview.Pixels != null && preview.Revision != _previewRevision)
+            {
+                var area = ComposePreview();
+                if (area.Width > 0) { _gpu!.UploadRegion(_frame.Pixels, _frame.Width, _frame.Height, area); SubmitTexture(); }
+            }
         }
         catch (Exception e) { VrDiagnostics.Write("Tick failure: " + e); Disconnect(); _nextConnect = DateTime.UtcNow.AddSeconds(8); SetStatus(false, "SteamVR 连接中断", e.Message + "；稍后自动重试。"); }
     }
     private void SetVisibility(bool visible)
     {
-        if (!visible) { _view.CancelInteraction(); SetPointer(null); _triggerWasDown = false; _requireTriggerRelease = true; }
+        if (!visible) { _vm.Recorder.Preview.Watch(this, false); _view.CancelInteraction(); SetPointer(null); _triggerWasDown = false; _requireTriggerRelease = true; }
         if (_visible == visible || _overlay is null || _handle == 0) return;
         Check(visible ? _overlay.ShowOverlay(_handle) : _overlay.HideOverlay(_handle)); _visible = visible;
         VrDiagnostics.Write("Panel visibility=" + visible);
@@ -248,9 +261,22 @@ public sealed class OverlayService : IDisposable
         converted.CopyPixels(_pixels, 820 * 4, 0);
         for (var i = 0; i < _pixels.Length; i += 4) (_pixels[i], _pixels[i + 2]) = (_pixels[i + 2], _pixels[i]);
         _frame.SetPanel(_pixels, 820, _surfaceHeight);
+        _previewLayout = PreviewWanted;
+        _previewHasPixels = _previewLayout && _vm.Recorder.Preview.Pixels != null;
+        if (_previewHasPixels) ComposePreview();
         _stage = "GPU upload";
         _gpu!.Upload(_frame.Pixels, 820, _surfaceHeight);
         SubmitTexture();
+    }
+    private Int32Rect ComposePreview()
+    {
+        var preview = _vm.Recorder.Preview;
+        var origin = _view.WristCameraTool.PreviewBox.TranslatePoint(new Point(), _view);
+        var area = new Int32Rect((int)Math.Round(origin.X), (int)Math.Round(origin.Y), CameraPreview.Width, CameraPreview.Height);
+        if (area.X < 0 || area.Y < 0 || area.X + area.Width > _frame.Width || area.Y + area.Height > _frame.Height) return default;
+        _frame.SetPreview(preview.Pixels!, area);
+        _previewRevision = preview.Revision;
+        return area;
     }
     internal Size TextureSize => new(_bitmap.PixelWidth, _bitmap.PixelHeight);
     internal bool EnsureSurface()
@@ -283,6 +309,7 @@ public sealed class OverlayService : IDisposable
     }
     public void Disconnect()
     {
+        _vm.Recorder.Preview.Watch(this, false);
         _view.CancelInteraction();
         _frame.SetCursor(null, _vm.DarkMode); _pointerVisible = false;
         try { if (_handle != 0) _overlay?.DestroyOverlay(_handle); }

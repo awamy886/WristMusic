@@ -10,7 +10,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>WristMusic</AssemblyName>
     <ApplicationIcon>Assets/app.ico</ApplicationIcon>
-    <Version>4.2.0</Version>
+    <Version>5.0.0</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
     <Description>腕间音乐 · SteamVR 桌面音乐控制</Description>
@@ -18,6 +18,8 @@
     <NoWarn>$(NoWarn);CS8981</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <None Update="ThirdParty/WristCamera.exe" TargetPath="WristCamera.exe" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Update="ThirdParty/Spout2-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Update="ThirdParty/openvr_api.dll" TargetPath="openvr_api.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <None Update="ThirdParty/OpenVR-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <Resource Include="Assets/app.ico" />

@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Runtime.InteropServices;
 
 namespace WristMusic.Services;
 
@@ -30,6 +31,26 @@ internal sealed class CursorFrameComposer
         if (point is not null && (_dark != dark || _sprite.Length == 0))
         { _sprite = CursorSprite.CreatePixels(dark); _dark = dark; }
         _cursorRect = Draw(); return Union(previous, _cursorRect);
+    }
+    internal void SetPreview(byte[] bgra, Int32Rect area)
+    {
+        // Update the cursor's backing pixels as well, so moving it away from
+        // the live image restores the most recent camera frame.
+        var source = MemoryMarshal.Cast<byte, uint>(bgra.AsSpan(0, checked(area.Width * area.Height * 4)));
+        var background = MemoryMarshal.Cast<byte, uint>(_background.AsSpan());
+        for (var row = 0; row < area.Height; row++)
+        {
+            var target = background.Slice((area.Y + row) * Width + area.X, area.Width);
+            var src = source.Slice(row * area.Width, area.Width);
+            for (var x = 0; x < src.Length; x++)
+            {
+                var color = src[x];
+                target[x] = 0xff000000u | ((color & 255) << 16) | (color & 0xff00) | ((color >> 16) & 255);
+            }
+        }
+        Restore(area);
+        if (_cursorRect.X < area.X + area.Width && _cursorRect.X + _cursorRect.Width > area.X &&
+            _cursorRect.Y < area.Y + area.Height && _cursorRect.Y + _cursorRect.Height > area.Y) Draw();
     }
     private Point? Normalize(Point? point) => point is { } p && double.IsFinite(p.X) && double.IsFinite(p.Y) &&
         p.X >= 0 && p.X <= Width && p.Y >= 0 && p.Y <= Height && Width > 0 && Height > 0 ? p : null;

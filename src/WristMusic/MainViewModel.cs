@@ -13,6 +13,7 @@ public sealed partial class MainViewModel : Observable, IDisposable
 {
     public PlayerService Players { get; } = new();
     public MediaService Media { get; }
+    public CameraRecorder Recorder { get; }
     private readonly VolumeService _volumeService = new();
     private readonly SettingsStore _store;
     private readonly IAutoStartClient _autoStart;
@@ -55,6 +56,7 @@ public sealed partial class MainViewModel : Observable, IDisposable
         CheckUpdatesCommand = new(_ => { if (!_checkingUpdate && !_disposed) RestartUpdates(manual: true); },
             _ => !_checkingUpdate && !_disposed);
         _store = store ?? new(); Settings = _store.Load();
+        Recorder = new(Settings, Save);
         _listening = new(Settings.TotalListeningSeconds); _lastListeningSave = Settings.TotalListeningSeconds;
         _autoStart = autoStartClient ?? new SteamVrAutoStartService();
         ThemeService.Apply(Settings.DarkMode);
@@ -68,7 +70,7 @@ public sealed partial class MainViewModel : Observable, IDisposable
         PageCommand = new(p => Page = p?.ToString() ?? "player");
         WristCommand = new(p => RightWrist = p?.ToString() == "right");
         VrSettingsCommand = new(p => VrSettingsOpen = p?.ToString() == "close" ? false : !VrSettingsOpen);
-        VrSettingsTabCommand = new(p => VrSettingsTab = p?.ToString() switch { "general" => "general", "tests" => "tests", "about" => "about", _ => "wrist" });
+        VrSettingsTabCommand = new(p => VrSettingsTab = p?.ToString() switch { "general" => "general", "tests" => "tests", "about" => "about", "toolbox" => "toolbox", _ => "wrist" });
         HideVrPanelCommand = new(_ => OverlayEnabled = false);
         OpenVrNotesCommand = new(_ => VrNotesOpen = true);
         DismissVrNotesCommand = new(_ =>
@@ -105,8 +107,8 @@ public sealed partial class MainViewModel : Observable, IDisposable
 
     private string _page = "player";
     public string Page { get => _page; set { if (Set(ref _page, value)) { Notify(nameof(PageTitle)); Notify(nameof(PageSubtitle)); } } }
-    public string PageTitle => DarkMode ? Page switch { "apps" => "你的音乐，随时就绪", "wrist" => "找到舒适的抬腕角度", "hotkeys" => "控制，快一步", "settings" => "让一切合你心意", _ => "让音乐，留在你的世界里" } : Page switch { "apps" => "播放器", "wrist" => "手腕面板", "hotkeys" => "快捷键", "settings" => "设置", _ => "音乐控制台" };
-    public string PageSubtitle => DarkMode ? Page switch { "apps" => "连接桌面播放器，在虚拟世界里延续你的歌单。", "wrist" => "调整佩戴位置、大小与显示方式。", "hotkeys" => "即使没有打开面板，也能快速控制播放。", "settings" => "连接方式与兼容选项。设置会自动保存。", _ => "不必摘下头显，也不必离开此刻。" } : Page switch { "apps" => "管理桌面播放器的路径、启动与关闭。", "wrist" => "设置佩戴位置、面板尺寸与显示方式。", "hotkeys" => "查看播放控制与面板显示快捷键。", "settings" => "管理界面外观、媒体控制与设备连接。", _ => "连接桌面播放器，抬腕即可控制。" };
+    public string PageTitle => Page == "toolbox" ? "百宝箱" : DarkMode ? Page switch { "apps" => "你的音乐，随时就绪", "wrist" => "找到舒适的抬腕角度", "hotkeys" => "控制，快一步", "settings" => "让一切合你心意", _ => "让音乐，留在你的世界里" } : Page switch { "apps" => "播放器", "wrist" => "手腕面板", "hotkeys" => "快捷键", "settings" => "设置", _ => "音乐控制台" };
+    public string PageSubtitle => Page == "toolbox" ? "" : DarkMode ? Page switch { "apps" => "连接桌面播放器，在虚拟世界里延续你的歌单。", "wrist" => "调整佩戴位置、大小与显示方式。", "hotkeys" => "即使没有打开面板，也能快速控制播放。", "settings" => "连接方式与兼容选项。设置会自动保存。", _ => "不必摘下头显，也不必离开此刻。" } : Page switch { "apps" => "管理桌面播放器的路径、启动与关闭。", "wrist" => "设置佩戴位置、面板尺寸与显示方式。", "hotkeys" => "查看播放控制与面板显示快捷键。", "settings" => "管理界面外观、媒体控制与设备连接。", _ => "连接桌面播放器，抬腕即可控制。" };
     public bool DarkMode { get => Settings.DarkMode; set { if (Settings.DarkMode == value) return; Settings.DarkMode = value; ThemeService.Apply(value); Changed(); Notify(nameof(PageTitle)); Notify(nameof(PageSubtitle)); Notify(nameof(Artwork)); } }
     public bool ForceClosePlayer
     {
@@ -545,5 +547,5 @@ public sealed partial class MainViewModel : Observable, IDisposable
         foreach (var app in Players.Apps) if (!string.IsNullOrEmpty(app.ExePath)) Settings.AppPaths[app.Id] = app.ExePath;
         try { _store.Save(Settings); _lastListeningSave = Settings.TotalListeningSeconds; } catch (Exception e) { Status = "设置保存失败：" + e.Message; }
     }
-    public void Dispose() { if (_disposed) return; _disposed = true; _usageLifetime?.Cancel(); _updateLoop?.Cancel(); _poll.Dispose(); _clock.Dispose(); _save.Dispose(); Overlay?.Dispose(); Media.Dispose(); Save(); }
+    public void Dispose() { if (_disposed) return; _disposed = true; _usageLifetime?.Cancel(); _updateLoop?.Cancel(); _poll.Dispose(); _clock.Dispose(); _save.Dispose(); Overlay?.Dispose(); Recorder.Dispose(); Media.Dispose(); Save(); }
 }
